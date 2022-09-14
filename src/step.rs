@@ -399,7 +399,8 @@ impl<'a, T> Step<'a, T> {
             other => other,
         }
     }
-
+    /// declares the place where a backtracking can be performed.
+    /// Details can be found in [Alt](Alt)
     pub fn or_from(self, pos: usize) -> Alt<'a, T> {
         Alt {
             init_pos: pos,
@@ -407,7 +408,32 @@ impl<'a, T> Step<'a, T> {
         }
     }
 }
-
+/// The structure is supposed to help with a backtracking from the given position.
+/// # Example
+/// ```ignore
+///  // here we have alternatives for the text that ends with '.' or '?' or '!'
+///             let sentence = |p| text(p)
+///                 .then_zip(|p| token!(self.inner.token(p) => Token::Dot))
+///                 .take_left()
+///                 .map(Sentence::Sentence);
+///
+///             let exclamation = |p| text(p)
+///                 .then_zip(|p| token!(self.inner.token(p) => Token::Bang))
+///                 .take_left()
+///                 .map(Sentence::Exclamation);
+///
+///             let question = |p| text(p)
+///                 .then_zip(|p| token!(self.inner.token(p) => Token::Question))
+///                 .take_left()
+///                 .map(Sentence::Question);
+///
+///             sentence(pos)
+///                 .or_from(pos)
+///                 .or(exclamation)
+///                 .or(question)
+///                 .into()
+///
+/// ```
 pub struct Alt<'a, T> {
     init_pos: usize,
     current: Step<'a, T>,
