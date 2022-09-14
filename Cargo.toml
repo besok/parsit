@@ -1,0 +1,17 @@
+[package]
+name = "parsit"
+description = "very simple lib, the parsing combinators, recursive descendent that uses logos as lexer"
+version = "0.1.0"
+edition = "2021"
+authors = ["BorisZhguchev <zhguchev@gmail.com>"]
+license-file = "LICENSE"
+homepage = "https://github.com/besok/cran_lua/parseit"
+repository = "https://github.com/besok/cran_lua/parseit"
+readme = "README.md"
+keywords = ["logos", "parser", "parser-combinator", "language","lexer"]
+categories = ["api-bindings", "parsing"]
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+logos = "0.12.1"
+logos-derive = "0.12.1"
