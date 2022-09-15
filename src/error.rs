@@ -17,10 +17,9 @@ pub enum ParseError<'a> {
     ///        if v.len() > 0 { Ok(()) } else { Err("empty") }
     ///  });
     ///
-    ///  if let Some(v) = res.map_error(|e| match e {
-    ///        ParseError::FailedOnValidation(v,_) => v,
-    ///        _other => ""
-    ///  }){ assert_eq!(v, "empty")} else { assert!(false) };
+    ///  if let Some(ParseError::FailedOnValidation(v,_)) = res.error(){
+    ///     assert_eq!(v, "empty")
+    ///  } else { assert!(false) };
     ///
     ///
     ///

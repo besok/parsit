@@ -138,6 +138,15 @@ impl<'a, T> Step<'a, T> {
         self.then_or_val_zip(then, Rhs::default())
     }
 
+    /// Combines this step with the next step according to the given function
+    /// # Arguments
+    /// * `then` - the next function to parse
+    /// * `combine` - the mapper to combine to values
+    ///
+    /// This method is not used a lot directly but turns up as a foundation for others.
+    /// For examples please see
+    ///  - [Step.then](Step::then)
+    ///  - [Step.then_zip](Step::then_zip)
     pub fn then_combine<Rhs, Res, Then, Combine>(
         self,
         then: Then,
@@ -251,6 +260,7 @@ impl<'a, T> Step<'a, T> {
             other => other.map(|_| Rhs::default()),
         }
     }
+
     pub fn then_or_none<Rhs, Then>(self, then: Then) -> Step<'a, Option<Rhs>>
         where
             Then: FnOnce(usize) -> Step<'a, Option<Rhs>>,
@@ -259,46 +269,92 @@ impl<'a, T> Step<'a, T> {
     }
 }
 
-impl<'a, Rhs: Debug, Lhs: Debug> Step<'a, (Lhs, Rhs)> {
-    pub fn debug1_show_last(self, prefix: &'a str) -> Step<'a, (Lhs, Rhs)> {
-        self.debug1_show(prefix, |(_, x)| x)
-    }
-    pub fn debug_show_last(self) -> Step<'a, (Lhs, Rhs)> {
-        self.debug_show(|(_, x)| x)
-    }
-}
-
 impl<'a, T: Debug> Step<'a, T> {
-    pub fn debug(self) -> Step<'a, T> {
-        self.debug1("")
+    /// Prints the information regarding the current step with a prefix
+
+    /// The type To should implement debug
+    ///
+    /// # Examples
+    /// ```rust
+    /// use parsit::step::Step::Success;
+    /// let step = Success(vec!["1"],0 );
+    /// step.print();
+    ///
+    /// ```
+    pub fn print(self) -> Step<'a, T> {
+        self.print_with("")
     }
-    pub fn debug_show<Show, To>(self, show: Show) -> Step<'a, T>
+    /// Prints the information regarding the current step
+    /// transforming the success according to the given function Show
+    /// # Arguments
+    /// * `show` - function transforming the value into some type that will be printed
+    ///
+    /// The type To should implement debug
+    ///
+    /// # Examples
+    /// ```rust
+    /// use parsit::step::Step::Success;
+    /// let step = Success(vec!["1"],0 );
+    /// step.print_as(|v| *v.get(0).unwrap());
+    ///
+    /// ```
+    pub fn print_as<Show, To>(self, show: Show) -> Step<'a, T>
         where
             Show: FnOnce(&T) -> &To,
             To: Debug,
     {
-        self.debug1_show("", show)
+        self.print_with_as("", show)
     }
-    pub fn debug1(self, prefix: &'a str) -> Step<'a, T> {
+
+    /// Prints the information regarding the current step with a prefix
+    /// # Example
+    /// ```rust
+    ///
+    ///  use parsit::step::Step::Success;
+    /// let step = Success(1,0);
+    ///
+    /// step
+    /// .print_with("some_prefix")
+    /// .map(|v| v + 1);
+    /// // will be 'some_prefix success, pos: 0, res: 1'
+    /// ```
+    ///
+    /// The success type should implement debug trait
+    pub fn print_with(self, prefix: &'a str) -> Step<'a, T> {
         match self {
             Success(v, pos) => {
                 println!(
-                    "debug | {} success, pos: {} , res: {:?}",
+                    "{} success, pos: {} , res: {:?}",
                     prefix, pos, v
                 );
                 Success(v, pos)
             }
             Fail(pos) => {
-                println!("debug | {} fail, pos: {}", prefix, pos);
+                println!("{} fail, pos: {}", prefix, pos);
                 Fail(pos)
             }
             Error(e) => {
-                println!("debug | {} error {:?}", prefix, e);
+                println!("{} error {:?}", prefix, e);
                 Error(e)
             }
         }
     }
-    pub fn debug1_show<Show, To>(self, prefix: &'a str, show: Show) -> Step<'a, T>
+    /// Prints the information regarding the current step with a prefix
+    /// transforming the success according to the given function Show
+    /// # Arguments
+    /// * `prefix` - given prefix
+    /// * `show` - function transforming the value into some type that will be printed
+    ///
+    /// The type To should implement debug
+    ///
+    /// # Examples
+    /// ```rust
+    /// use parsit::step::Step::Success;
+    /// let step = Success(vec!["1"],0 );
+    /// step.print_with_as("prefix", |v| *v.get(0).unwrap());
+    ///
+    /// ```
+    pub fn print_with_as<Show, To>(self, prefix: &'a str, show: Show) -> Step<'a, T>
         where
             Show: FnOnce(&T) -> &To,
             To: Debug,
@@ -326,12 +382,23 @@ impl<'a, T: Debug> Step<'a, T> {
 }
 
 impl<'a, T> Step<'a, T> {
+    /// Returns a value if the result is success otherwise returns none
     pub fn ok(self) -> Option<T> {
         match self {
             Success(t, _) => Some(t),
             _ => None
         }
     }
+    /// Transforms a value if it is success
+    ///
+    /// # Examples
+    /// ```rust
+    /// use parsit::step::Step;
+    /// let step_one = Step::Success(1,0);
+    /// let step_two = step_one.map(|v|v + 1);
+    ///
+    /// ```
+    ///
     pub fn map<Rhs, Map>(self, mapper: Map) -> Step<'a, Rhs>
         where
             Map: FnOnce(T) -> Rhs,
@@ -342,6 +409,20 @@ impl<'a, T> Step<'a, T> {
             Error(e) => Error(e),
         }
     }
+    /// Combines the results from the current step(success) and with the given step success
+    /// # Example
+    /// ```rust
+    ///
+    /// use parsit::step::Step;
+    ///
+    /// let step = Step::Success(1,0);
+    /// let next = step.combine(Step::Success(1,1),|a,b| a + b);
+    ///
+    /// ```
+    /// # Notes
+    ///  - If the result is successfull for both the latter position is taken
+    ///  - If the result is failed the latest position is taken
+    ///  - If the result is error the latest error is taken
     pub fn combine<Rhs, Res, Combine>(
         self,
         other: Step<'a, Rhs>,
@@ -357,6 +438,24 @@ impl<'a, T> Step<'a, T> {
             (Fail(pos), _) | (_, Fail(pos)) => Fail(pos),
         }
     }
+    /// Validates successful result and transforms into error if the validation is failed
+    ///# Examples
+    /// ```
+    /// use parsit::error::ParseError;
+    /// use parsit::step::Step;
+    ///
+    ///  let res = Step::Success("", 1);
+    ///  let res = res.validate(|v| {
+    ///        if v.len() > 0 { Ok(()) } else { Err("empty") }
+    ///  });
+    ///
+    ///  if let Some(ParseError::FailedOnValidation(v,_)) = res.error(){
+    ///     assert_eq!(v, "empty")
+    ///  } else { assert!(false) };
+    ///
+    ///
+    ///
+    /// ```
     pub fn validate<Validation>(self, validate: Validation) -> Step<'a, T>
         where
             Validation: FnOnce(&T) -> Result<(), &'a str>,
@@ -369,10 +468,27 @@ impl<'a, T> Step<'a, T> {
             other => other,
         }
     }
-
-    pub fn map_error<R, E>(self, mapper: E) -> Option<R> where E: FnOnce(ParseError<'a>) -> R {
+    /// Transforms error result into option if it is error or returns None otherwise
+    /// # Example
+    /// ```
+    /// use parsit::error::ParseError;
+    /// use parsit::step::Step;
+    ///
+    ///  let res = Step::Success("", 1);
+    ///  let res = res.validate(|v| {
+    ///        if v.len() > 0 { Ok(()) } else { Err("empty") }
+    ///  });
+    ///
+    ///  if let Some(ParseError::FailedOnValidation(v,_)) = res.error(){
+    ///     assert_eq!(v, "empty")
+    ///  } else { assert!(false) };
+    ///
+    ///
+    ///
+    /// ```
+    pub fn error(self) -> Option<ParseError<'a>> {
         match self {
-            Error(e) => Some(mapper(e)),
+            Error(e) => Some(e),
             _ => None
         }
     }
