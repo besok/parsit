@@ -112,12 +112,89 @@ impl<'a, L: Eq + Hash, R> Step<'a, Vec<(L, R)>> {
 }
 
 impl<'a, T> Step<'a, T> {
+    /// Takes the next function and if the curren one and the next one are both success transforms the result value
+    /// into a pair of them
+    /// # Example
+    /// ```rust
+    ///  use logos::Logos;
+    ///  use crate::parsit::token;
+    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::EmptyToken;
+    ///  use crate::parsit::step::Step;
+    ///
+    ///  #[derive(Logos,PartialEq)]
+    ///     pub enum T<'a> {
+    ///         #[regex(r"[a-zA-Z-]+")]
+    ///         Word(&'a str),
+    ///
+    ///         #[token("|")]
+    ///         Del,
+    ///
+    ///         #[error]
+    ///         Error,
+    ///     }
+    ///
+    ///  let pit:ParseIt<T> = ParseIt::new("word|another").unwrap();
+    ///
+    ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => v)};
+    ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
+    ///
+    ///  let parse = |p:usize|{
+    ///     word(p)
+    ///     .then_zip(del)
+    ///     .take_left()
+    ///     .then_zip(word)
+    ///     .map(|(first,second)| format!("{},{}",first,second))
+    ///  };
+    ///
+    ///
+    /// ```
     pub fn then_zip<Res, Then>(self, then: Then) -> Step<'a, (T, Res)>
         where
             Then: FnOnce(usize) -> Step<'a, Res>,
     {
         self.then_combine(then, |a, b| (a, b))
     }
+    /// Takes the next function and if the curren one and the next one are both success transforms the result value
+    /// into a pair of them but if the second step is failed(absent)
+    /// the second value will be replaced with a default value and the step will be succeeded.
+    /// It is convenient when the second value is optional.
+    /// # Example
+    /// ```rust
+    ///  use logos::Logos;
+    ///  use crate::parsit::token;
+    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::EmptyToken;
+    ///  use crate::parsit::step::Step;
+    ///
+    ///  #[derive(Logos,PartialEq)]
+    ///     pub enum T<'a> {
+    ///         #[regex(r"[a-zA-Z-]+")]
+    ///         Word(&'a str),
+    ///
+    ///         #[token("|")]
+    ///         Del,
+    ///
+    ///         #[error]
+    ///         Error,
+    ///     }
+    ///
+    ///  enum Word<'a>{ Word(&'a str), Bang(&'a str)}
+    ///  let pit:ParseIt<T> = ParseIt::new("word|").unwrap();
+    ///
+    ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => v)};
+    ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
+    ///
+    ///  let parse = |p:usize|{
+    ///     word(p)
+    ///     .then_zip(del)
+    ///     .take_left()
+    ///     .then_or_val_zip(word, &"default")
+    ///     .map(|(first,second)| format!("{},{}",first,second))
+    ///  };
+    ///
+    ///
+    /// ```
     pub fn then_or_val_zip<Res, Then>(self, then: Then, default: Res) -> Step<'a, (T, Res)>
         where
             Then: FnOnce(usize) -> Step<'a, Res>,
@@ -125,12 +202,98 @@ impl<'a, T> Step<'a, T> {
         self.then_or_val_combine(then, default, |a, b| (a, b))
     }
 
+    /// Takes the next function and if the curren one and the next one are both success transforms the result value
+    /// into a pair of them but if the second step is failed(absent)
+    /// the second value will be replaced with a none and the step will be succeeded.
+    /// It is convenient when the second value is optional.
+    ///
+    /// *Note : the second result should be an optional in any case*
+    ///
+    /// # Example
+    /// ```rust
+    ///  use logos::Logos;
+    ///  use crate::parsit::token;
+    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::EmptyToken;
+    ///  use crate::parsit::step::Step;
+    ///
+    ///  #[derive(Logos,PartialEq)]
+    ///     pub enum T<'a> {
+    ///         #[regex(r"[a-zA-Z-]+")]
+    ///         Word(&'a str),
+    ///
+    ///         #[token("|")]
+    ///         Del,
+    ///
+    ///         #[error]
+    ///         Error,
+    ///     }
+    ///
+    ///  let pit:ParseIt<T> = ParseIt::new("word|").unwrap();
+    ///
+    ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => v)};
+    ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
+    ///
+    ///  let parse = |p:usize|{
+    ///     word(p)
+    ///     .then_zip(del)
+    ///     .take_left()
+    ///     .then_or_none_zip(|p| word(p).or_none()) // here we need to return option
+    ///  };
+    ///
+    ///
+    /// ```
     pub fn then_or_none_zip<Rhs, Then>(self, then: Then) -> Step<'a, (T, Option<Rhs>)>
         where
             Then: FnOnce(usize) -> Step<'a, Option<Rhs>>,
     {
         self.then_or_none_combine(then, |a, b| (a, b))
     }
+    /// Takes the next function and if the curren one and the next one are both success transforms the result value
+    /// into a pair of them but if the second step is failed(absent)
+    /// the second value will be replaced with a default variant from the value
+    /// and the step will be succeeded.
+    ///
+    /// *Note : the second result should implement default*
+    ///
+    /// # Example
+    /// ```rust
+    ///  use logos::Logos;
+    ///  use crate::parsit::token;
+    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::EmptyToken;
+    ///  use crate::parsit::step::Step;
+    ///
+    ///  #[derive(Logos,PartialEq)]
+    ///     pub enum T<'a> {
+    ///         #[regex(r"[a-zA-Z-]+")]
+    ///         Word(&'a str),
+    ///
+    ///         #[token("|")]
+    ///         Del,
+    ///
+    ///         #[error]
+    ///         Error,
+    ///     }
+    ///
+    ///  enum Word<'a>{ Word(&'a str), Bang(&'a str)}
+    ///  impl<'a> Default for Word<'a>{fn default() -> Self {
+    ///         Word::Word("")
+    ///     }}
+    ///  let pit:ParseIt<T> = ParseIt::new("word|").unwrap();
+    ///
+    ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => Word::Word(v))};
+    ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
+    ///
+    ///  let parse = |p:usize|{
+    ///     word(p)
+    ///     .then_zip(del)
+    ///     .take_left()
+    ///     .then_or_default_zip(word) // here we return Word("word") and Word("")
+    ///  };
+    ///
+    ///
+    /// ```
     pub fn then_or_default_zip<Rhs: Default, Then>(self, then: Then) -> Step<'a, (T, Rhs)>
         where
             Then: FnOnce(usize) -> Step<'a, Rhs>,
@@ -167,6 +330,11 @@ impl<'a, T> Step<'a, T> {
         }
     }
 
+    /// Applies the given function as many times as it will be succeeded and then combine the result
+    ///
+    /// Please see
+    ///  - [Step::then_multi_zip](Step::then_multi_zip)
+    ///  - [ParseIt::zero_or_more](ParseIt::zero_or_more)
     pub fn then_multi_combine<K, R, Then, Combine>(
         self,
         then: Then,
@@ -195,6 +363,9 @@ impl<'a, T> Step<'a, T> {
             Error(e) => Error(e),
         }
     }
+    /// Applies the given function as many times as it will be succeeded and then combine the result
+    /// into a vec. It is used in the parser in methods `zero_or_more` or `one_or_more`
+    ///
     pub fn then_multi_zip<R, Then>(self, then: Then) -> Step<'a, (T, Vec<R>)>
         where
             Then: FnOnce(usize) -> Step<'a, R> + Copy,
@@ -202,6 +373,10 @@ impl<'a, T> Step<'a, T> {
         self.then_multi_combine(then, |f, v| (f, v))
     }
 
+    /// Takes the next function and if the curren one and the next one are both success transforms the result value
+    /// into a pair of them according to the given function combine
+    ///
+    /// For the details see [then_or_val_zip](Step::then_or_val_zip)
     pub fn then_or_val_combine<Rhs, Res, Then, Combine>(
         self,
         then: Then,
@@ -223,6 +398,10 @@ impl<'a, T> Step<'a, T> {
             Error(e) => Error(e),
         }
     }
+    /// Takes the next function and if the curren one and the next one are both success transforms the result value
+    /// into a pair of them according to the given function combine and process the absent value as well
+    ///
+    /// For the details see [then_or_none_zip](Step::then_or_none_zip)
     pub fn then_or_none_combine<Rhs, Res, Then, Combine>(
         self,
         then: Then,
@@ -235,13 +414,98 @@ impl<'a, T> Step<'a, T> {
         self.then_or_val_combine(then, None, combine)
     }
 
+    /// Takes and process the next step if the current one is succeed omitting the result of the current step.
+    /// It is convenient when w need to know only a fact that the parser can parse current token
+    /// without pulling out extra information from it
+    ///
+    ///# Example
+    /// ```rust
+    ///  use logos::Logos;
+    ///  use crate::parsit::token;
+    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::EmptyToken;
+    ///  use crate::parsit::step::Step;
+    ///
+    ///  #[derive(Logos,PartialEq)]
+    ///     pub enum T<'a> {
+    ///         #[regex(r"[a-zA-Z-]+")]
+    ///         Word(&'a str),
+    ///
+    ///         #[token("|")]
+    ///         Del,
+    ///
+    ///         #[error]
+    ///         Error,
+    ///     }
+    ///
+    ///  enum Word<'a>{ Word(&'a str), Bang(&'a str)}
+    ///  impl<'a> Default for Word<'a>{fn default() -> Self {
+    ///         Word::Word("")
+    ///     }}
+    ///  let pit:ParseIt<T> = ParseIt::new("|word|").unwrap();
+    ///
+    ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => Word::Word(v))};
+    ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
+    ///
+    ///  let parse = |p:usize|{
+    ///     del(p)
+    ///         .then(word) // omitting the result of del
+    ///         .then_zip(del)
+    ///         .take_left()
+    ///  };
+    ///
+    ///
+    /// ```
     pub fn then<Rhs, Then>(self, then: Then) -> Step<'a, Rhs>
         where
             Then: FnOnce(usize) -> Step<'a, Rhs>,
     {
         self.then_combine(then, |_, k| k)
     }
-
+    /// Takes and process the next step if the current one is succeed omitting the result of the current step.
+    /// It is convenient when w need to know only a fact that the parser can parse current token
+    /// without pulling out extra information from it
+    ///
+    /// If the next fn is not presented then return a default value
+    ///
+    ///# Example
+    /// ```rust
+    ///  use logos::Logos;
+    ///  use crate::parsit::token;
+    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::EmptyToken;
+    ///  use crate::parsit::step::Step;
+    ///
+    ///  #[derive(Logos,PartialEq)]
+    ///     pub enum T<'a> {
+    ///         #[regex(r"[a-zA-Z-]+")]
+    ///         Word(&'a str),
+    ///
+    ///         #[token("|")]
+    ///         Del,
+    ///
+    ///         #[error]
+    ///         Error,
+    ///     }
+    ///
+    ///  enum Word<'a>{ Word(&'a str), Bang(&'a str), EmptyWord}
+    ///  impl<'a> Default for Word<'a>{fn default() -> Self {
+    ///         Word::Word("")
+    ///     }}
+    ///  let pit:ParseIt<T> = ParseIt::new("||").unwrap();
+    ///
+    ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => Word::Word(v))};
+    ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
+    ///
+    ///  let parse = |p:usize|{
+    ///     del(p)
+    ///         .then_or_val(word, Word::EmptyWord) // omitting the result of del and process empty var
+    ///         .then_zip(del)
+    ///         .take_left()
+    ///  };
+    ///
+    ///
+    /// ```
     pub fn then_or_val<Rhs, Then>(self, then: Then, default: Rhs) -> Step<'a, Rhs>
         where
             Then: FnOnce(usize) -> Step<'a, Rhs>,
@@ -251,6 +515,50 @@ impl<'a, T> Step<'a, T> {
             other => other.map(|_| default),
         }
     }
+    /// Takes and process the next step if the current one is succeed omitting the result of the current step.
+    /// It is convenient when w need to know only a fact that the parser can parse current token
+    /// without pulling out extra information from it
+    ///
+    /// If the next fn is not presented then return a default value from trait
+    ///
+    ///# Example
+    /// ```rust
+    ///  use logos::Logos;
+    ///  use crate::parsit::token;
+    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::EmptyToken;
+    ///  use crate::parsit::step::Step;
+    ///
+    ///  #[derive(Logos,PartialEq)]
+    ///     pub enum T<'a> {
+    ///         #[regex(r"[a-zA-Z-]+")]
+    ///         Word(&'a str),
+    ///
+    ///         #[token("|")]
+    ///         Del,
+    ///
+    ///         #[error]
+    ///         Error,
+    ///     }
+    ///
+    ///  enum Word<'a>{ Word(&'a str), Bang(&'a str), EmptyWord}
+    ///  impl<'a> Default for Word<'a>{fn default() -> Self {
+    ///         Word::EmptyWord
+    ///     }}
+    ///  let pit:ParseIt<T> = ParseIt::new("||").unwrap();
+    ///
+    ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => Word::Word(v))};
+    ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
+    ///
+    ///  let parse = |p:usize|{
+    ///     del(p)
+    ///         .then_or_default(word) // omitting the result of del and process empty var
+    ///         .then_zip(del)
+    ///         .take_left()
+    ///  };
+    ///
+    ///
+    /// ```
     pub fn then_or_default<Rhs: Default, Then>(self, then: Then) -> Step<'a, Rhs>
         where
             Then: FnOnce(usize) -> Step<'a, Rhs>,
@@ -260,7 +568,50 @@ impl<'a, T> Step<'a, T> {
             other => other.map(|_| Rhs::default()),
         }
     }
-
+    /// Takes and process the next step if the current one is succeed omitting the result of the current step.
+    /// It is convenient when w need to know only a fact that the parser can parse current token
+    /// without pulling out extra information from it
+    ///
+    /// If the next fn is not presented then return a none
+    ///
+    ///# Example
+    /// ```rust
+    ///  use logos::Logos;
+    ///  use crate::parsit::token;
+    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::EmptyToken;
+    ///  use crate::parsit::step::Step;
+    ///
+    ///  #[derive(Logos,PartialEq)]
+    ///     pub enum T<'a> {
+    ///         #[regex(r"[a-zA-Z-]+")]
+    ///         Word(&'a str),
+    ///
+    ///         #[token("|")]
+    ///         Del,
+    ///
+    ///         #[error]
+    ///         Error,
+    ///     }
+    ///
+    ///  enum Word<'a>{ Word(&'a str), Bang(&'a str), EmptyWord}
+    ///  impl<'a> Default for Word<'a>{fn default() -> Self {
+    ///         Word::Word("")
+    ///     }}
+    ///  let pit:ParseIt<T> = ParseIt::new("||").unwrap();
+    ///
+    ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => Word::Word(v))};
+    ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
+    ///
+    ///  let parse = |p:usize|{
+    ///     del(p)
+    ///         .then_or_none(|p| word(p).or_none()) // omitting the result of del and process empty var
+    ///         .then_zip(del)
+    ///         .take_left()
+    ///  };
+    ///
+    ///
+    /// ```
     pub fn then_or_none<Rhs, Then>(self, then: Then) -> Step<'a, Option<Rhs>>
         where
             Then: FnOnce(usize) -> Step<'a, Option<Rhs>>,
@@ -295,7 +646,7 @@ impl<'a, T: Debug> Step<'a, T> {
     /// ```rust
     /// use parsit::step::Step::Success;
     /// let step = Success(vec!["1"],0 );
-    /// step.print_as(|v| *v.get(0).unwrap());
+    /// step.print_as(|v| v.get(0).unwrap());
     ///
     /// ```
     pub fn print_as<Show, To>(self, show: Show) -> Step<'a, T>
@@ -351,7 +702,7 @@ impl<'a, T: Debug> Step<'a, T> {
     /// ```rust
     /// use parsit::step::Step::Success;
     /// let step = Success(vec!["1"],0 );
-    /// step.print_with_as("prefix", |v| *v.get(0).unwrap());
+    /// step.print_with_as("prefix", |v| v.get(0).unwrap());
     ///
     /// ```
     pub fn print_with_as<Show, To>(self, prefix: &'a str, show: Show) -> Step<'a, T>

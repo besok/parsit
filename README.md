@@ -1,10 +1,20 @@
+# ParseIt
+
 ### Description
 This library provides a very simple and lightweight parser (recursive descendant ll(1)) to combine and express 
 a given grammar.
 
 The library uses [Logos](https://github.com/maciejhirsz/logos) as a lexical analyzer and tokenizer.
 
-### The steps 
+### The premise
+
+This library major incentives were:
+ - lightweight : very small and does not require a deep dive
+ - transparency : literally 3 structs with a handful of methods
+ - speed : not bad speed (with a gratitude to [Logos](https://github.com/maciejhirsz/logos))
+
+
+### The steps to implement
 
 #### Create a set of tokens using Logos
 ```rust
@@ -159,6 +169,44 @@ The helpers:
         println!("{:?}",result);
     }
 ```
+### The base auxiliary methods
 
+#### On parser
+ - `token` - gives a possibility to pull out a curren token
+ - `one_or_more` - gives a one or more semantic
+ - `zero_or_more` - gives a zero or more semantic
+ - `validate_eof` - ensure the parser reaches end of the input
 
+#### On step
+
+##### To alternate
+ - `or` - gives an alternative in a horizon of one token
+ - `or_from` - gives a backtracking option 
+##### To combine
+ - `then` - gives a basic combination with the next rule ommiting the current one
+ - `then_zip` - combines a current result and a next one into a pair
+ - `then_or_none` -combines a next one in an option with the current one or return a none otherwise
+
+##### To collect
+ - `take_left` - drops a right value from the pair
+ - `take_right` - drops a left value from the pair
+ - `merge` - merge a value into a list
+ - `to_map` - transforms a list of pairs into a map
+
+##### To transform
+ - `or_val` - replaces a value with a default value if it is not presented
+ - `or_none` - replaces a value with a none if it is not presented
+
+##### To work with value
+ - `ok` - transforms a value into option
+ - `error` - transforms an error into option
+ - `map` - transforms a value
+ - `combine` - combines a value with another value from a given step
+ - `validate` - validates a given value and transforms into error if a validation is failed
+
+##### To print
+ - `print` - print a step
+ - `print_with` - print a step with a given prefix
+ - `print_as` - print a step with a transformation of value 
+ - `print_with_as` - print a step with a transformation of value with a given prefix 
 
