@@ -68,8 +68,8 @@ impl<'a, L> Step<'a, (L, Vec<L>)> {
     /// Mergers the element from the left hand side to the right hand side
     /// This case often appears for the situations when there is a head of the same type
     /// and the tail that can be optional like
-    ///```antlr
-    /// contract: value (COMMA value)* // abc, bcd, cde
+    ///```ebnf
+    /// <rule> ::= <value> {"," <value>} // abc, bcd, cde
     /// ```
     /// Here the first value is always presented and the others can be absent.
     pub fn merge(self) -> Step<'a, Vec<L>> {
@@ -84,8 +84,8 @@ impl<'a, L> Step<'a, (Option<L>, Vec<L>)> {
     /// Mergers the element from the left hand side to the right hand side if it exists
     /// This case often appears for the situations when there is a head of the same type
     /// and the tail that can be
-    ///```antlr
-    /// contract: value? (COMMA value)+
+    ///```ebnf
+    /// <rule> ::= [value] {"," value }
     /// ```
     pub fn merge(self) -> Step<'a, Vec<L>> {
         self.map(|(h, mut rest)| match h {
@@ -102,9 +102,9 @@ impl<'a, L: Eq + Hash, R> Step<'a, Vec<(L, R)>> {
     /// Mergers a vec of pairs into map
     /// This case often appears for the situations when there are some pair values and we know
     /// they are unique in names
-    ///```antlr
-    /// pair: item:item;
-    /// contract: pair (COMMA pair)*
+    ///```ebnf
+    /// <pair> ::= <item> ":" <item>
+    /// <rule> ::= <pair> {"," <pair>}
     /// ```
     pub fn to_map(self) -> Step<'a, HashMap<L, R>> {
         self.map(|r| r.into_iter().collect::<HashMap<_, _>>())
@@ -373,12 +373,53 @@ impl<'a, T> Step<'a, T> {
     pub fn map_error<R, E>(self, mapper: E) -> Option<R> where E: FnOnce(ParseError<'a>) -> R {
         match self {
             Error(e) => Some(mapper(e)),
-            other => None
+            _ => None
         }
     }
 }
 
 impl<'a, T> Step<'a, T> {
+    /// Provides a default alternative for the given rule in case if the value does not present.
+    ///
+    /// This is an implementation for [or_val](Step::or_val) that provides a none as a default.
+    /// It can be used to process an optional values when we have a specific default value to provide
+    ///
+    /// #Example
+    ///
+    /// ```ebnf
+    /// <rule> ::= "value" ["!"]
+    /// ```
+    ///
+    /// ```rust
+    ///  use logos::Logos;
+    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::token;
+    ///  use crate::parsit::step::Step;
+    ///  use crate::parsit::parser::EmptyToken;
+    ///  #[derive(Logos,PartialEq)]
+    ///     pub enum T {
+    ///         #[token("value")]
+    ///         Value,
+    ///         #[token("!")]
+    ///         Bang,
+    ///         #[error]
+    ///         Error,
+    ///     }
+    ///  struct Value(bool);
+    ///
+    ///  let p:ParseIt<T> = ParseIt::new("value").unwrap();
+    ///
+    ///  let bang_opt = |pos| {
+    ///         token!(p.token(pos) => T::Bang => true).or_val(false)
+    ///     };
+    ///
+    ///  let parse =
+    ///     token!(p.token(0) => T::Value)
+    ///         .then_zip(bang_opt)
+    ///         .take_right()
+    ///         .map(Value);
+    ///
+    /// ```
     pub fn or_val(self, default: T) -> Step<'a, T> {
         match self {
             Fail(pos) => Success(default, pos),
@@ -386,9 +427,67 @@ impl<'a, T> Step<'a, T> {
             other => other,
         }
     }
+    /// Provides an optional alternative for the given rule in case if the value does not present
+    ///
+    /// This is an implementation for [or_val](Step::or_val) that provides a none as a default.
+    /// It can be used to process an optional values
+    ///
+    /// #Example
+    /// ```rust
+    ///  use logos::Logos;
+    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::token;
+    ///  use crate::parsit::step::Step;
+    ///  use crate::parsit::parser::EmptyToken;
+    ///  #[derive(Logos,PartialEq)]
+    ///     pub enum T {
+    ///         #[token("value")]
+    ///         Value,
+    ///         #[token("!")]
+    ///         Bang,
+    ///         #[error]
+    ///         Error,
+    ///     }
+    ///  struct Value(bool);
+    ///
+    ///  let p:ParseIt<T> = ParseIt::new("value").unwrap();
+    ///
+    ///  let bang_opt = |pos| {
+    ///         token!(p.token(pos) => T::Bang).or_none()
+    ///     };
+    ///
+    ///  let parse =
+    ///     token!(p.token(0) => T::Value)
+    ///         .then_zip(bang_opt)
+    ///         .take_right()
+    ///         .map(|opt| Value(opt.is_some()) );
+    ///
+    /// ```
     pub fn or_none(self) -> Step<'a, Option<T>> {
         self.map(|x| Some(x)).or_val(None)
     }
+    /// Provides a function of backtracking in a horizon of one token.
+    /// It works for non complex rules or for the rules that have a distinction in the beginning of parsing like
+    /// ```bnf
+    /// f: '[' items ']';
+    /// s: '(' items ')';
+    /// t: '{' items '}';
+    ///
+    /// rule: f | s | t ;
+    ///
+    /// ```
+    /// # Example
+    /// ```ignore
+    ///
+    ///  let first =  |p|{ token!(token => LBracket).then(items) };
+    ///  let second = |p|{ token!(token => LParen).then(items) };
+    ///  let third =  |p|{ token!(token => LSquare).then(items) };
+    ///
+    ///  first(pos)
+    ///     .or(second)
+    ///     .or(third)
+    ///
+    /// ```
     pub fn or<Alt>(self, next: Alt) -> Step<'a, T>
         where
             Alt: FnOnce(usize) -> Step<'a, T>,
@@ -399,7 +498,7 @@ impl<'a, T> Step<'a, T> {
             other => other,
         }
     }
-    /// declares the place where a backtracking can be performed.
+    /// Declares the place where a backtracking can be performed.
     /// Details can be found in [Alt](Alt)
     pub fn or_from(self, pos: usize) -> Alt<'a, T> {
         Alt {
@@ -408,10 +507,11 @@ impl<'a, T> Step<'a, T> {
         }
     }
 }
+
 /// The structure is supposed to help with a backtracking from the given position.
 /// # Example
 /// ```ignore
-///  // here we have alternatives for the text that ends with '.' or '?' or '!'
+///    // here we have alternatives for the text that ends with '.' or '?' or '!'
 ///             let sentence = |p| text(p)
 ///                 .then_zip(|p| token!(self.inner.token(p) => Token::Dot))
 ///                 .take_left()
