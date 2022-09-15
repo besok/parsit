@@ -8,7 +8,7 @@ license-file = "LICENSE"
 homepage = "https://github.com/besok/cran_lua/parseit"
 repository = "https://github.com/besok/cran_lua/parseit"
 readme = "README.md"
-keywords = ["logos", "parser", "parser-combinator", "language","lexer", "recursive-descendant", "ll"]
+keywords = ["logos", "parser", "parser-combinator", "language","lexer",]
 categories = ["algorithms","api-bindings", "parsing","compilers","development-tools","parser-implementations"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
