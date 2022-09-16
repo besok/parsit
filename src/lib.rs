@@ -104,8 +104,9 @@
 //!
 //!
 
-mod lexer;
+pub mod lexer;
 pub mod step;
 pub mod parser;
 pub mod error;
+pub mod test;
 

@@ -7,7 +7,7 @@ pub(crate) struct LexIt<'a, T>
         T: Logos<'a, Source = str>,
 {
     source: &'a str,
-    tokens: Vec<T>,
+    pub(crate) tokens: Vec<T>,
 }
 
 impl<'a, T> LexIt<'a, T>

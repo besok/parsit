@@ -1,8 +1,7 @@
 # ParseIt
 
 ### Description
-This library provides a very simple and lightweight parser (recursive descendant ll(1)) to combine and express 
-a given grammar.
+This library provides a very simple and lightweight parser (recursive descendant ll(1)) to combine and express a grammar.
 
 The library uses [Logos](https://github.com/maciejhirsz/logos) as a lexical analyzer and tokenizer.
 
@@ -11,7 +10,7 @@ The library uses [Logos](https://github.com/maciejhirsz/logos) as a lexical anal
 This library major incentives were:
  - lightweight : very small and does not require a deep dive
  - transparency : literally 3 structs with a handful of methods
- - speed : not bad speed (with a gratitude to [Logos](https://github.com/maciejhirsz/logos))
+ - speed : good speed (with a gratitude to [Logos](https://github.com/maciejhirsz/logos))
 
 
 ### The steps to implement
@@ -140,7 +139,8 @@ The helpers:
             sentence(pos)
                 .or_from(pos)
                 .or(exclamation)
-                .or(question).into()
+                .or(question)
+                .into()
         }
         fn word(&self, pos: usize) -> Step<'a, Item<'a>> {
             token!(self.inner.token(pos) =>
@@ -183,13 +183,13 @@ The helpers:
  - `or` - gives an alternative in a horizon of one token
  - `or_from` - gives a backtracking option 
 ##### To combine
- - `then` - gives a basic combination with the next rule ommiting the current one
+ - `then` - gives a basic combination with a next rule omitting the current one
  - `then_zip` - combines a current result and a next one into a pair
- - `then_or_none` -combines a next one in an option with the current one or return a none otherwise
+ - `then_or_none` -combines a next one in an option with a current one or return a none otherwise
 
 ##### To collect
- - `take_left` - drops a right value from the pair
- - `take_right` - drops a left value from the pair
+ - `take_left` - drops a right value from a pair
+ - `take_right` - drops a left value from a pair
  - `merge` - merge a value into a list
  - `to_map` - transforms a list of pairs into a map
 
@@ -198,11 +198,11 @@ The helpers:
  - `or_none` - replaces a value with a none if it is not presented
 
 ##### To work with value
- - `ok` - transforms a value into option
- - `error` - transforms an error into option
+ - `ok` - transforms a value into an option
+ - `error` - transforms an error into an option
  - `map` - transforms a value
  - `combine` - combines a value with another value from a given step
- - `validate` - validates a given value and transforms into error if a validation is failed
+ - `validate` - validates a given value and transforms into an error if a validation failed
 
 ##### To print
  - `print` - print a step
@@ -210,3 +210,119 @@ The helpers:
  - `print_as` - print a step with a transformation of value 
  - `print_with_as` - print a step with a transformation of value with a given prefix 
 
+### Testing 
+
+#### Lexer
+
+To test a lexer there are methods from `crate::parsit::test::lexer_test::*` for service
+
+```rust
+ use logos::Logos;
+ use crate::parsit::test::lexer_test::*;
+
+ #[derive(Logos, Debug, PartialEq)]
+ pub enum T<'a> {
+     #[regex(r"[a-zA-Z-]+")]
+     Word(&'a str),
+
+     #[token(",")]
+     Comma,
+     #[token(".")]
+     Dot,
+
+     #[token("!")]
+     Bang,
+     #[token("?")]
+     Question,
+
+     #[regex(r"[ \t\r\n]+", logos::skip)]
+     Whitespace,
+     #[error]
+     Error,
+ }
+ 
+ #[test]
+ fn test() {
+     expect::<T>("abc, bcs!", vec![T::Word("abc"), T::Comma, T::Word("bcs"), T::Bang]);
+     expect_succeed::<T>("abc, bcs!");
+     expect_failed::<T>("abc, bcs >> !");
+     expect_failed_with::<T,_>("abc, bcs > !", |e| e.is_bad_token_on(">") );
+ }
+```
+
+#### Parser
+
+To test a parser there are methods from `crate::parsit::test::parser_test::*` for service
+
+```rust
+use logos::Logos;
+use crate::parsit::test::parser_test::fail;
+use crate::parsit::test::parser_test::parsit;
+use crate::parsit::token;
+use crate::parsit::parser::ParseIt;
+use crate::parsit::step::Step;
+
+ #[derive(Logos, Debug, PartialEq)]
+ pub enum T<'a> {
+     #[regex(r"[a-zA-Z-]+")]
+     Word(&'a str),
+
+     #[token(",")]
+     Comma,
+     #[token(".")]
+     Dot,
+
+     #[token("!")]
+     Bang,
+     #[token("?")]
+     Question,
+
+     #[regex(r"[ \t\r\n]+", logos::skip)]
+     Whitespace,
+     #[error]
+     Error,
+ }
+ 
+ #[test]
+ fn test_expect() {
+     let p = parsit("abc!");
+     let bang = |pos:usize| token!(p.token(pos) => T::Bang => "!");
+     let word = |pos:usize| token!(p.token(pos) => T::Word(v) => *v);
+     let step =
+         word(0)
+             .then_or_val_zip(bang, "")
+             .map(|(a,b)| format!("{}{}",a,b));
+     
+     expect(step,"abc!".to_string());
+ }
+#[test]
+fn test_pos() {
+    let p = parsit("abc!");
+    let bang = |pos:usize| token!(p.token(pos) => T::Bang => "!");
+    let word = |pos:usize| token!(p.token(pos) => T::Word(v) => v);
+    let step =word(0).then_or_val_zip(bang, "");
+    
+    expect_pos(step,2); // the next position to parse
+}
+#[test]
+fn test_fail() {
+    let p = parsit("abc?!");
+    let bang = |pos:usize| token!(p.token(pos) => T::Bang => "!");
+    let word = |pos:usize| token!(p.token(pos) => T::Word(v) => v);
+    let step =word(0).then_zip(bang);
+    
+    fail(step);
+}
+#[test]
+fn test_fail_on() {
+    let p = parsit("abc?!");
+    let bang = |pos:usize| token!(p.token(pos) => T::Bang => "!");
+    let word = |pos:usize| token!(p.token(pos) => T::Word(v) => v);
+    let step =word(0).then_zip(bang);
+
+    fail_on(step,1);
+}
+
+
+
+```
