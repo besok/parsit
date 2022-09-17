@@ -348,14 +348,9 @@ impl<'a, T> Step<'a, T> {
             Success(t, pos) => {
                 let mut vals = vec![];
                 let mut pos = pos;
-                loop {
-                    match then(pos) {
-                        Success(r, next_pos) => {
-                            vals.push(r);
-                            pos = next_pos
-                        }
-                        _ => break,
-                    }
+                while let Success(r, next_pos) = then(pos) {
+                    vals.push(r);
+                    pos = next_pos
                 }
                 Success(combine(t, vals), pos)
             }
@@ -1032,15 +1027,17 @@ impl<'a, T> Alt<'a, T> {
     }
 }
 
-impl<'a, T> Into<Step<'a, T>> for Alt<'a, T> {
-    fn into(self) -> Step<'a, T> {
-        self.current
+
+
+impl<'a, T> From<Alt<'a, T>> for Step<'a, T> {
+    fn from(alt: Alt<'a, T>) -> Self {
+       alt.current
     }
 }
 
-impl<'a, T> Into<Result<T, ParseError<'a>>> for Step<'a, T> {
-    fn into(self) -> Result<T, ParseError<'a>> {
-        match self {
+impl<'a, T> From<Step <'a,T>> for Result<T, ParseError<'a>> {
+    fn from(step: Step<'a, T>) -> Self {
+        match step {
             Success(t, _) => Ok(t),
             Fail(_) => Err(ParseError::FinishedOnFail),
             Error(e) => Err(e),

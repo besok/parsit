@@ -147,7 +147,7 @@ impl<'a, Token> ParseIt<'a, Token>
         where
             Then: FnOnce(usize) -> Step<'a, T> + Copy,
     {
-        match then(pos).then_multi_zip(|p| then(p)).merge() {
+        match then(pos).then_multi_zip(then).merge() {
             Fail(_) => Success(vec![], pos),
             Error(ReachedEOF(_)) => Success(vec![], pos),
             success => success,

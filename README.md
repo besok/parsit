@@ -16,6 +16,12 @@ This library major incentives were:
 ### The steps to implement
 
 #### Create a set of tokens using Logos
+
+#### Add logos to dependency
+```cargo
+    logos = "*"
+```
+
 ```rust
 use logos::Logos;
 

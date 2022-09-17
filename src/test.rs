@@ -124,9 +124,8 @@ pub mod lexer_test {
             T: Logos<'a, Source=str> + PartialEq,
             T::Extras: Default,
     {
-        match LexIt::<T>::new(src) {
-            Ok(_) => panic!("the test failed due to expectation to get an error but tokens have been parsed"),
-            Err(_) => (),
+        if LexIt::<T>::new(src).is_ok() {
+            panic!("the test failed due to expectation to get an error but tokens have been parsed")
         }
     }
 
@@ -164,19 +163,18 @@ pub mod lexer_test {
         where
             T: Logos<'a, Source=str> + PartialEq,
             T::Extras: Default,
-            Error: FnOnce(ParseError<'a>) -> ()
+            Error: FnOnce(ParseError<'a>)
     {
         match LexIt::<T>::new(src) {
-            Ok(lexer) => panic!("the test failed due to expectation to get an error but tokens have been parsed"),
+            Ok(_) => panic!("the test failed due to expectation to get an error but tokens have been parsed"),
             Err(e) => error(e),
         }
     }
 
     impl<'a> ParseError<'a> {
-        pub fn is_bad_token_on(&self, src: &'a str) -> () {
-            match &self {
-                ParseError::BadToken(s, _) => assert_eq!(*s, src),
-                _ => ()
+        pub fn is_bad_token_on(&self, src: &'a str)  {
+            if let ParseError::BadToken(s, _) = &self {
+                assert_eq!(*s, src)
             }
         }
     }
@@ -335,7 +333,7 @@ pub mod parser_test {
     /// ```
     pub fn fail<T>(res: Step<T>) {
         match res {
-            Step::Success(v, pos) => {
+            Step::Success(_, pos) => {
                 panic!("A step should failed but successes on a position {}", pos)
             }
             Step::Fail(_) => (),
@@ -384,7 +382,7 @@ pub mod parser_test {
     /// ```
     pub fn fail_on<T>(res: Step<T>, expect: usize) {
         match res {
-            Step::Success(v, pos) => {
+            Step::Success(_, pos) => {
                 panic!("A step should failed but successes on a position {}", pos)
             }
             Step::Fail(pos) => assert_eq!(pos, expect),
