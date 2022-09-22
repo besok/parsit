@@ -183,6 +183,12 @@ The helpers:
  - `zero_or_more` - gives a zero or more semantic
  - `validate_eof` - ensure the parser reaches end of the input
 
+#### Macros
+ - `token!` - parses the current token. In general, it is used the following `token!(p.token(pos) => T::Bang => "!")` 
+ - `wrap!`  - implements a simple pattern in grammar like `left value right`, for instance `[1,2,3]` or `(a,b)`
+   - can handle the default value like `wrap!(0 => left; value or default; right)`
+   - can handle the option value like `wrap!(0 => left; value ?; right)`
+
 #### On step
 
 ##### To alternate

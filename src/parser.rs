@@ -235,3 +235,187 @@ macro_rules! token {
    }
 
 }
+
+/// Helps to parse a wrapper
+/// ```ebnf
+/// <rule> ::= '(' "value" ')'
+/// ```
+///
+/// # Examples
+/// ```
+///     use logos::Logos;
+///     use crate::parsit::parser::ParseIt;
+///     use crate::parsit::wrap;
+///     use crate::parsit::token;
+///     use crate::parsit::step::Step;
+///     use crate::parsit::parser::EmptyToken;
+///     #[derive(Logos,PartialEq)]
+///     pub enum TFQ {
+///         #[token("(")]
+///         L,
+///         #[token(")")]
+///         R,
+///
+///         #[token("word")]
+///         Word,
+///         #[token("none")]
+///         None,
+///
+///
+///         #[error]
+///         Error,
+///     }
+///
+///     let p:ParseIt<TFQ> = ParseIt::new("(word)").unwrap();
+///     let left = |pos:usize|{token!(p.token(pos) => TFQ::L)};
+///     let right = |pos:usize|{token!(p.token(pos) => TFQ::R)};
+///     let word = |pos:usize|{token!(p.token(pos) => TFQ::Word)};
+///     let pos = 0;
+///     wrap!(pos => left ; word; right );
+///
+///     let p:ParseIt<TFQ> = ParseIt::new("()").unwrap();
+///     let word = |pos:usize|{token!(p.token(pos) => TFQ::Word).or_none()};
+///     wrap!(0 => left ; word ?; right );
+///
+///     let p:ParseIt<TFQ> = ParseIt::new("()").unwrap();
+///     let word = |pos:usize|{token!(p.token(pos) => TFQ::Word => 1)};
+///     wrap!(0 => left ; word or 0; right ).print();
+/// ```
+///
+#[macro_export]
+macro_rules! wrap {
+
+  ($pos:literal => $left:ident; $internal:ident; $right:ident ) => {
+      $left($pos).then($internal).then_zip($right).take_left()
+   } ;
+   ($pos:literal => $left:ident; $internal:ident ?; $right:ident ) => {
+      $left($pos).then_or_none($internal).then_zip($right).take_left()
+   };
+   ($pos:literal => $left:ident; $internal:ident or $default:ident; $right:ident ) => {
+      $left($pos).then_or_val($internal,$default).then_zip($right).take_left()
+   };
+    ($pos:literal => $left:ident; $internal:ident or $default:literal; $right:ident ) => {
+      $left($pos).then_or_val($internal,$default).then_zip($right).take_left()
+   };
+   ($pos:ident => $left:ident; $internal:ident; $right:ident ) => {
+      $left($pos).then($internal).then_zip($right).take_left()
+   } ;
+   ($pos:ident => $left:ident; $internal:ident ?; $right:ident ) => {
+      $left($pos).then_or_none($internal).then_zip($right).take_left()
+   };
+   ($pos:ident => $left:ident; $internal:ident or $default:ident; $right:ident ) => {
+      $left($pos).then_or_val($internal,$default).then_zip($right).take_left()
+   };
+    ($pos:ident => $left:ident; $internal:ident or $default:literal; $right:ident ) => {
+      $left($pos).then_or_val($internal,$default).then_zip($right).take_left()
+   }
+}
+
+/// Helps to parse a sequence
+/// ```ebnf
+/// <rule> ::= el {delim el}
+/// ```
+///
+/// # Examples
+/// ```
+///     use logos::Logos;
+///     use crate::parsit::parser::ParseIt;
+///     use crate::parsit::wrap;
+///     use crate::parsit::seq;
+///     use crate::parsit::token;
+///     use crate::parsit::step::Step;
+///     use crate::parsit::parser::EmptyToken;
+///     #[derive(Logos,PartialEq)]
+///     pub enum TFQ {
+///         #[token("(")]
+///         L,
+///         #[token(")")]
+///         R,
+///         #[token(",")]
+///         C,
+///
+///         #[token("word")]
+///         Word,
+///         #[token("none")]
+///         None,
+///
+///
+///         #[error]
+///         Error,
+///     }
+///
+///     let p:ParseIt<TFQ> = ParseIt::new("word,word,word").unwrap();
+///     let comma = |pos:usize|{token!(p.token(pos) => TFQ::C)};
+///     let word = |pos:usize|{token!(p.token(pos) => TFQ::Word)};
+///     let pos = 0;
+///     seq!(pos => word, comma );
+///     let p:ParseIt<TFQ> = ParseIt::new("word,word,word,").unwrap();
+///     seq!(pos => word, comma ,);
+/// ```
+///
+#[macro_export]
+macro_rules! seq {
+    ($pos:ident => $elem:ident, $sep:ident ) => {
+      $elem($pos)
+        .then_multi_zip(|p| $sep(p).then($elem))
+        .merge()
+   };
+    ($pos:ident => $elem:ident, $sep:ident , ) => {
+      let body = |p:usize| {
+          $sep(p).then($elem).then_or_none_zip(|p| $sep(p).or_none()).take_left()
+      };
+
+      $elem($pos)
+        .then_multi_zip(body)
+        .merge()
+   } ;
+    ($pos:literal => $elem:ident, $sep:ident ) => {
+      $elem($pos)
+        .then_multi_zip(|p| $sep(p).then($elem))
+        .merge()
+   };
+    ($pos:literal => $elem:ident, $sep:ident , ) => {
+      let body = |p:usize| {
+          $sep(p).then($elem).then_or_none_zip(|p| $sep(p).or_none()).take_left()
+      };
+
+      $elem($pos)
+        .then_multi_zip(body)
+        .merge()
+   }
+}
+
+#[cfg(test)]
+mod tests {
+    use logos::Logos;
+    use crate::parser::ParseIt;
+    use crate::parser::Step;
+    use crate::parser::EmptyToken;
+
+    #[derive(Logos, PartialEq)]
+    pub enum TFQ {
+        #[token("(")]
+        L,
+        #[token(")")]
+        R,
+        #[token(",")]
+        C,
+
+        #[token("word")]
+        Word,
+        #[token("none")]
+        None,
+
+        #[error]
+        Error,
+    }
+
+    #[test]
+    fn test() {
+        let p: ParseIt<TFQ> = ParseIt::new("word,word,word").unwrap();
+        let comma = |pos: usize| { token!(p.token(pos) => TFQ::C) };
+        let word = |pos: usize| { token!(p.token(pos) => TFQ::Word) };
+        let pos = 0;
+        seq!(pos => word, comma );
+    }
+}

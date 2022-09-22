@@ -6,4 +6,8 @@
   * add test helpers* 
 **`0.1.3`**
   * fix some clippy warnings
+**`0.1.4`**
+  * add macros 
+    * wrap
+    * seq
  
