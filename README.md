@@ -188,6 +188,8 @@ The helpers:
  - `wrap!`  - implements a simple pattern in grammar like `left value right`, for instance `[1,2,3]` or `(a,b)`
    - can handle the default value like `wrap!(0 => left; value or default; right)`
    - can handle the option value like `wrap!(0 => left; value ?; right)`
+ - `seq!` - implements a simple pattern of sequence like `el sep el ... `, for instance `1,2,3`
+   - can have a `,` at the end signaling the separator can be at the ned of the seq like `1,2,3 (,)?`
 
 #### On step
 

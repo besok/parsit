@@ -10,4 +10,8 @@
   * add macros 
     * wrap
     * seq
+**`0.1.5`**
+  * add macros 
+    * wrap
+    * seq
  
