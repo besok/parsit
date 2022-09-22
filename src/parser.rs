@@ -360,29 +360,27 @@ macro_rules! seq {
         .then_multi_zip(|p| $sep(p).then($elem))
         .merge()
    };
-    ($pos:ident => $elem:ident, $sep:ident , ) => {
-      let body = |p:usize| {
+    ($pos:ident => $elem:ident,$sep:ident, ) => {
+        $elem($pos)
+        .then_multi_zip(|p:usize| {
           $sep(p).then($elem).then_or_none_zip(|p| $sep(p).or_none()).take_left()
-      };
-
-      $elem($pos)
-        .then_multi_zip(body)
+         })
         .merge()
-   } ;
+    };
+
     ($pos:literal => $elem:ident, $sep:ident ) => {
       $elem($pos)
         .then_multi_zip(|p| $sep(p).then($elem))
         .merge()
    };
-    ($pos:literal => $elem:ident, $sep:ident , ) => {
-      let body = |p:usize| {
-          $sep(p).then($elem).then_or_none_zip(|p| $sep(p).or_none()).take_left()
-      };
 
-      $elem($pos)
-        .then_multi_zip(body)
+    ($pos:ident => $elem:ident,$sep:ident, ) => {
+        $elem($pos)
+        .then_multi_zip(|p:usize| {
+          $sep(p).then($elem).then_or_none_zip(|p| $sep(p).or_none()).take_left()
+         })
         .merge()
-   }
+    };
 }
 
 #[cfg(test)]
