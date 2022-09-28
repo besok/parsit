@@ -14,4 +14,6 @@
   * add macros 
     * wrap
     * seq
+**`0.1.6`**
+  * add then_skip
  

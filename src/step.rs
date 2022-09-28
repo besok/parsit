@@ -155,6 +155,46 @@ impl<'a, T> Step<'a, T> {
     {
         self.then_combine(then, |a, b| (a, b))
     }
+
+    /// Drops the next function but keeps the current result.
+    ///Basically it is an alias for
+    /// ```rust
+    ///  use logos::Logos;
+    ///  use crate::parsit::token;
+    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::EmptyToken;
+    ///  use crate::parsit::step::Step;
+    ///
+    ///  #[derive(Logos,PartialEq)]
+    ///     pub enum T<'a> {
+    ///         #[regex(r"[a-zA-Z-]+")]
+    ///         Word(&'a str),
+    ///
+    ///         #[token("|")]
+    ///         Del,
+    ///
+    ///         #[error]
+    ///         Error,
+    ///     }
+    ///
+    ///  let pit:ParseIt<T> = ParseIt::new("word|another").unwrap();
+    ///
+    ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => v)};
+    ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
+    ///
+    ///  let parse = |p:usize|{
+    ///     word(p)
+    ///     .then_skip(del)
+    ///     .then_zip(word)
+    ///     .map(|(first,second)| format!("{},{}",first,second))
+    ///  };
+    /// ```
+    pub fn then_skip<Res, Then>(self, then: Then) -> Step<'a, T>
+        where
+            Then: FnOnce(usize) -> Step<'a, Res>,
+    {
+        self.then_zip(then).take_left()
+    }
     /// Takes the next function and if the curren one and the next one are both success transforms the result value
     /// into a pair of them but if the second step is failed(absent)
     /// the second value will be replaced with a default value and the step will be succeeded.

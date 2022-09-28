@@ -1,7 +1,7 @@
 [package]
 name = "parsit"
 description = "very simple lib, the parsing combinators, recursive descendent that uses logos as lexer"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 authors = ["BorisZhguchev <zhguchev@gmail.com>"]
 license-file = "LICENSE"

@@ -199,6 +199,7 @@ The helpers:
 ##### To combine
  - `then` - gives a basic combination with a next rule omitting the current one
  - `then_zip` - combines a current result and a next one into a pair
+ - `then_skip` - parses the next one but drops the result keeping only current one
  - `then_or_none` -combines a next one in an option with a current one or return a none otherwise
 
 ##### To collect
