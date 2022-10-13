@@ -67,9 +67,10 @@ impl<'a, T> LexIt<'a, T>
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::ParseIt;
+    use crate::parser::{EmptyToken, ParseIt};
     use crate::token;
     use logos::Logos;
+    use crate::step::Step;
 
     #[derive(Logos, PartialEq)]
     pub enum T<'a> {
@@ -86,7 +87,7 @@ mod tests {
     #[test]
     fn test() {
         let pit: ParseIt<T> = ParseIt::new("abc|bcd|a|b|x").unwrap();
-        let x = pit.env(1);
+        let x = pit.env::<EmptyToken>(Step::Fail(1));
         println!("{}", x)
     }
 }

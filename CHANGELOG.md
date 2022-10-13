@@ -20,4 +20,6 @@
   * fix a bug in macros seq
 **`0.1.8`**
   * add print env function
+**`0.1.9`**
+  * change print env function
  
