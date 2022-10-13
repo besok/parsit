@@ -362,58 +362,9 @@ macro_rules! seq {
    };
     ($pos:ident => $elem:ident,$sep:ident, ) => {
         $elem($pos)
-        .then_multi_zip(|p:usize| {
-          $sep(p).then($elem).then_or_none_zip(|p| $sep(p).or_none()).take_left()
-         })
+        .then_multi_zip(|p| {$sep(p).then($elem)})
+        .then_or_none_zip(|p| $sep(p).or_none())
+        .take_left()
         .merge()
     };
-
-    ($pos:literal => $elem:ident, $sep:ident ) => {
-      $elem($pos)
-        .then_multi_zip(|p| $sep(p).then($elem))
-        .merge()
-   };
-
-    ($pos:ident => $elem:ident,$sep:ident, ) => {
-        $elem($pos)
-        .then_multi_zip(|p:usize| {
-          $sep(p).then($elem).then_or_none_zip(|p| $sep(p).or_none()).take_left()
-         })
-        .merge()
-    };
-}
-
-#[cfg(test)]
-mod tests {
-    use logos::Logos;
-    use crate::parser::ParseIt;
-    use crate::parser::Step;
-    use crate::parser::EmptyToken;
-
-    #[derive(Logos, PartialEq)]
-    pub enum TFQ {
-        #[token("(")]
-        L,
-        #[token(")")]
-        R,
-        #[token(",")]
-        C,
-
-        #[token("word")]
-        Word,
-        #[token("none")]
-        None,
-
-        #[error]
-        Error,
-    }
-
-    #[test]
-    fn test() {
-        let p: ParseIt<TFQ> = ParseIt::new("word,word,word").unwrap();
-        let comma = |pos: usize| { token!(p.token(pos) => TFQ::C) };
-        let word = |pos: usize| { token!(p.token(pos) => TFQ::Word) };
-        let pos = 0;
-        seq!(pos => word, comma );
-    }
 }

@@ -16,4 +16,6 @@
     * seq
 **`0.1.6`**
   * add then_skip
+**`0.1.7`**
+  * fix a bug in macros seq
  
