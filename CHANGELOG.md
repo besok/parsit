@@ -22,4 +22,6 @@
   * add print env function
 **`0.1.9`**
   * change print env function
+**`0.1.10`**
+  * fix a bug  in a print env function
  

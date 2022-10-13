@@ -49,15 +49,23 @@ impl<'a, T> LexIt<'a, T>
         let l = self.tokens_str.len();
 
         let left_border = if pos >= 2 { pos - 2 } else if pos >= 1 { pos - 1 } else { pos };
-        let right_border = if pos + 2 < l { pos + 2 } else if pos + 1 < l { pos + 1 } else { pos };
-        let mut idx = left_border;
-        for p in &self.tokens_str[left_border..=right_border] {
-            if idx == pos {
-                str.push_str(format!(" >>{}<< ", *p).as_str())
-            } else { str.push_str(*p) }
-            idx = idx + 1;
+        let right_border = if pos + 2 < l { pos + 2 } else if pos + 1 < l { pos + 1 } else if pos < l { pos } else { pos - 1 };
+
+        if right_border <= left_border {
+            self.tokens_str
+                .get(pos)
+                .map(|s| (*s).to_string())
+                .unwrap()
+        } else {
+            let mut idx = left_border;
+            for p in &self.tokens_str[left_border..=right_border] {
+                if idx == pos {
+                    str.push_str(format!(" >>{}<< ", *p).as_str())
+                } else { str.push_str(*p) }
+                idx = idx + 1;
+            }
+            str
         }
-        str
     }
 
     pub(crate) fn len(&self) -> usize {
@@ -87,7 +95,7 @@ mod tests {
     #[test]
     fn test() {
         let pit: ParseIt<T> = ParseIt::new("abc|bcd|a|b|x").unwrap();
-        let x = pit.env::<EmptyToken>(Step::Fail(1));
+        let x = pit.env::<EmptyToken>(Step::Fail(9));
         println!("{}", x)
     }
 }
