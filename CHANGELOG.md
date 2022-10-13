@@ -18,4 +18,6 @@
   * add then_skip
 **`0.1.7`**
   * fix a bug in macros seq
+**`0.1.8`**
+  * add print env function
  

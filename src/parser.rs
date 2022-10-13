@@ -163,6 +163,12 @@ impl<'a, Token> ParseIt<'a, Token>
             other => other,
         }
     }
+    /// Prints a position and env from the source text.
+    /// It has a radius of 2 tokens so thus it prints
+    /// a token -2 a token -1 >> a token on pos<< a token + 1 a token + 2
+    pub fn env(&self, pos:usize) -> String {
+        self.lexer.env(pos)
+    }
 }
 
 /// The token is used as a stub for the parsing operations when we need just a notion
