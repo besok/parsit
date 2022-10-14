@@ -11,7 +11,7 @@ const LINE_SEP: &'static str = "\n";
 fn create_marker(pos: usize) -> String {
     let mut del = String::new();
     del.push_str(LINE_SEP);
-    for _ in 0..pos_in_line {
+    for _ in 0..pos {
         del.push_str(" ");
     }
     del.push_str("^");
