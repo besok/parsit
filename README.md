@@ -243,7 +243,7 @@ fn test() {
 - `print_with` - print a step with a given prefix
 - `print_as` - print a step with a transformation of value
 - `print_with_as` - print a step with a transformation of value with a given prefix
-- `parit.env` - Prints a position and env from the source text(with a radius 2 and '>>' '<<' separating the offending
+- `parit.env` - Prints a position and env from the source text(with a radius 3 
   token )
 
 ### Testing

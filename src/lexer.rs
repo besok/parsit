@@ -3,6 +3,22 @@ use logos::Logos;
 use crate::error::ParseError;
 use crate::token;
 
+#[cfg(windows)]
+const LINE_SEP: &'static str = "\r\n";
+#[cfg(not(windows))]
+const LINE_SEP: &'static str = "\n";
+
+fn create_marker(pos: usize) -> String {
+    let mut del = String::new();
+    del.push_str(LINE_SEP);
+    for _ in 0..pos_in_line {
+        del.push_str(" ");
+    }
+    del.push_str("^");
+    del.push_str(LINE_SEP);
+    del
+}
+
 /// A simple wrapper for `Logos` that works with &str
 pub(crate) struct LexIt<'a, T>
     where
@@ -46,26 +62,36 @@ impl<'a, T> LexIt<'a, T>
 
     pub(crate) fn env(&self, pos: usize) -> String {
         let mut str = String::new();
-        let l = self.tokens_str.len();
+        let max = self.tokens_str.len() - 1;
 
-        let left_border = if pos >= 2 { pos - 2 } else if pos >= 1 { pos - 1 } else { pos };
-        let right_border = if pos + 2 < l { pos + 2 } else if pos + 1 < l { pos + 1 } else if pos < l { pos } else { pos - 1 };
+        let left = pos - 3;
+        let right = pos + 3;
 
-        if right_border <= left_border {
-            self.tokens_str
-                .get(pos)
-                .map(|s| (*s).to_string())
-                .unwrap()
-        } else {
-            let mut idx = left_border;
-            for p in &self.tokens_str[left_border..=right_border] {
-                if idx == pos {
-                    str.push_str(format!(" >>{}<< ", *p).as_str())
-                } else { str.push_str(*p) }
-                idx = idx + 1;
+        let left = if left <= 0 { 0 } else { left };
+        let right = if right >= max { max } else { right };
+
+        let mut idx = left;
+        let mut line = 0;
+        let mut pos_in_line = 0;
+        for p in &self.tokens_str[left..=right] {
+            str.push_str(*p);
+            if idx == pos {
+                line = str.lines().count() - 1;
+                pos_in_line = str.lines().last().map(|s| s.len() - p.len()).unwrap_or(0);
             }
-            str
+            idx = idx + 1;
         }
+
+        let mut final_str = String::new();
+
+        for (i, s) in str.lines().into_iter().enumerate() {
+            final_str.push_str(s);
+            if i == line {
+                final_str.push_str(create_marker(pos_in_line).as_str());
+            }
+        }
+
+        final_str
     }
 
     pub(crate) fn len(&self) -> usize {
