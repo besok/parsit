@@ -243,8 +243,7 @@ fn test() {
 - `print_with` - print a step with a given prefix
 - `print_as` - print a step with a transformation of value
 - `print_with_as` - print a step with a transformation of value with a given prefix
-- `parit.env` - Prints a position and env from the source text(with a radius 3 
-  token )
+- `parsit.env` - Prints a position and env from the source text(with a radius of 3 tokens )
 
 ### Testing
 
@@ -289,6 +288,13 @@ fn test() {
 #### Parser
 
 To test a parser there are methods from `crate::parsit::test::parser_test::*` for service
+
+- expect : expect to parse a given value
+- expect_or_env : expect to parse a given value otherwise it will print an env (`parsit.env`)
+- expect_pos : expect to parse and get a cursor on a given pos
+- expect_pos_or_env : expect to parse and get a cursor on a given pos otherwise it will print an env (`parsit.env`)
+- fail : should fail parsing
+- fail_on : should fail parsing on a given position
 
 ```rust
 use logos::Logos;
