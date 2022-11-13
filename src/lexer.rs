@@ -121,7 +121,7 @@ mod tests {
     #[test]
     fn test() {
         let pit: ParseIt<T> = ParseIt::new("abc|bcd|a|b|x").unwrap();
-        let x = pit.env::<EmptyToken>(Step::Fail(9));
+        let x = pit.env::<EmptyToken>(&Step::Fail(9));
         println!("{}", x)
     }
 }

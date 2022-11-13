@@ -166,10 +166,10 @@ impl<'a, Token> ParseIt<'a, Token>
     /// Prints a position and env from the source text.
     /// It has a radius of 2 tokens so thus it prints
     /// -3-2-10+1+2+3
-    pub fn env<T>(&self, step: Step<'a, T>) -> String {
+    pub fn env<T>(&self, step: &Step<'a, T>) -> String {
         match step {
-            Success(_, p) => self.lexer.env(p),
-            Fail(p) => self.lexer.env(p),
+            Success(_, p) => self.lexer.env(*p),
+            Fail(p) => self.lexer.env(*p),
             Error(e) => format!("{:?}", e)
         }
     }

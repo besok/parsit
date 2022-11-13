@@ -172,13 +172,14 @@ pub mod lexer_test {
     }
 
     impl<'a> ParseError<'a> {
-        pub fn is_bad_token_on(&self, src: &'a str)  {
+        pub fn is_bad_token_on(&self, src: &'a str) {
             if let ParseError::BadToken(s, _) = &self {
                 assert_eq!(*s, src)
             }
         }
     }
 }
+
 pub mod parser_test {
     use std::fmt::Debug;
     use logos::Logos;
@@ -247,6 +248,70 @@ pub mod parser_test {
             Step::Error(e) => panic!("A step finished with an error {:?}", e),
         }
     }
+
+    /// Asserts a step value with a given one otherwise prints env
+    /// # Example
+    /// ```rust
+    /// use logos::Logos;
+    /// use parsit::test::parser_test::expect;
+    /// use crate::parsit::test::parser_test::*;
+    /// use crate::parsit::token;
+    /// use crate::parsit::parser::ParseIt;
+    /// use crate::parsit::step::Step;
+    ///
+    /// #[derive(Logos, Debug, PartialEq)]
+    /// pub enum T<'a> {
+    ///     #[regex(r"[a-zA-Z-]+")]
+    ///     Word(&'a str),
+    ///
+    ///     #[token(",")]
+    ///     Comma,
+    ///     #[token(".")]
+    ///     Dot,
+    ///
+    ///     #[token("!")]
+    ///     Bang,
+    ///     #[token("?")]
+    ///     Question,
+    ///
+    ///     #[regex(r"[ \t\r\n]+", logos::skip)]
+    ///     Whitespace,
+    ///     #[error]
+    ///     Error,
+    /// }
+    /// let p = parsit("abc!");
+    /// let bang = |pos:usize| token!(p.token(pos) => T::Bang => "!");
+    /// let word = |pos:usize| token!(p.token(pos) => T::Word(v) => *v);
+    /// let step =
+    ///     word(0)
+    ///         .then_or_val_zip(bang, "")
+    ///         .map(|(a,b)| format!("{}{}",a,b));
+    ///
+    /// expect_or_env(p,step,"abc!".to_string());
+    /// ```
+    pub fn expect_or_env<'a, Token, StepRes>(parser: ParseIt<'a, Token>, res: Step<'a, StepRes>, expect: StepRes)
+        where
+            StepRes: PartialEq + Debug,
+            Token: Logos<'a, Source=str> + Debug + PartialEq,
+            Token::Extras: Default,
+    {
+        match res {
+            Step::Success(v, _) => assert_eq!(v, expect),
+            Step::Fail(pos) => {
+                println!("Print env for position {}:", pos);
+                println!("{}", parser.env(&res));
+
+                panic!(r#"A step failed on the position {}."#, pos);
+            }
+            Step::Error(ref e) => {
+                println!("Print env for position:");
+                println!("{}", parser.env(&res));
+
+                panic!(r#"A step finished with an error {:?}"#, e)
+            }
+        }
+    }
+
     /// Asserts a step value with success state and the position is expected as well
     /// # Example
     /// ```rust
@@ -291,6 +356,68 @@ pub mod parser_test {
             Step::Error(e) => panic!("A step finished with an error {:?}", e),
         }
     }
+
+    /// Asserts a step value with success state and the position is expected as well otherwise prints env
+    /// # Example
+    /// ```rust
+    /// use logos::Logos;
+    /// use parsit::test::parser_test::expect_pos_or_env;
+    /// use crate::parsit::test::parser_test::expect_pos;
+    /// use crate::parsit::test::parser_test::parsit;
+    /// use crate::parsit::token;
+    /// use crate::parsit::parser::ParseIt;
+    /// use crate::parsit::step::Step;
+    ///
+    /// #[derive(Logos, Debug, PartialEq)]
+    /// pub enum T<'a> {
+    ///     #[regex(r"[a-zA-Z-]+")]
+    ///     Word(&'a str),
+    ///
+    ///     #[token(",")]
+    ///     Comma,
+    ///     #[token(".")]
+    ///     Dot,
+    ///
+    ///     #[token("!")]
+    ///     Bang,
+    ///     #[token("?")]
+    ///     Question,
+    ///
+    ///     #[regex(r"[ \t\r\n]+", logos::skip)]
+    ///     Whitespace,
+    ///     #[error]
+    ///     Error,
+    /// }
+    /// let p = parsit("abc!");
+    /// let bang = |pos:usize| token!(p.token(pos) => T::Bang => "!");
+    /// let word = |pos:usize| token!(p.token(pos) => T::Word(v) => v);
+    /// let step =word(0).then_or_val_zip(bang, "").map(|(l,r)|format!("{}+{}+",l,r));
+    ///
+    /// expect_pos_or_env(p,step,2); // the next position to parse
+    /// ```
+    pub fn expect_pos_or_env<'a, Token, StepRes>(parser: ParseIt<'a, Token>, res: Step<'a, StepRes>, expect: usize)
+        where
+            StepRes: PartialEq + Debug,
+            Token: Logos<'a, Source=str> + Debug + PartialEq,
+            Token::Extras: Default,
+    {
+        match res {
+            Step::Success(_, pos) => assert_eq!(pos, expect),
+            Step::Fail(pos) => {
+                println!("Print env for position {}:", pos);
+                println!("{}", parser.env(&res));
+
+                panic!(r#"A step failed on the position {}."#, pos);
+            }
+            Step::Error(ref e) => {
+                println!("Print env for position:");
+                println!("{}", parser.env(&res));
+
+                panic!(r#"A step finished with an error {:?}"#, e)
+            }
+        }
+    }
+
     /// Asserts a step value with a fail.
     /// Fail is related only on the fail in the given rule in a step.
     /// # Example
@@ -340,6 +467,7 @@ pub mod parser_test {
             Step::Error(e) => panic!("A step should failed but errored with an error {:?}", e),
         }
     }
+
     /// Asserts a step value with a fail on an expected position
     /// Fail is related only on the fail in the given rule in a step.
     /// # Example

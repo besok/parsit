@@ -331,6 +331,18 @@ fn test_expect() {
 
     expect(step, "abc!".to_string());
 }
+#[test]
+fn test_expect_or_env() {
+    let p = parsit("abc!");
+    let bang = |pos: usize| token!(p.token(pos) => T::Bang => "!");
+    let word = |pos: usize| token!(p.token(pos) => T::Word(v) => *v);
+    let step =
+        word(0)
+            .then_or_val_zip(bang, "")
+            .map(|(a, b)| format!("{}{}", a, b));
+
+    expect_or_env(p,step, "abc!".to_string());
+}
 
 #[test]
 fn test_pos() {
@@ -340,6 +352,15 @@ fn test_pos() {
     let step = word(0).then_or_val_zip(bang, "");
 
     expect_pos(step, 2); // the next position to parse
+}
+#[test]
+fn test_pos_or_env() {
+    let p = parsit("abc!");
+    let bang = |pos: usize| token!(p.token(pos) => T::Bang => "!");
+    let word = |pos: usize| token!(p.token(pos) => T::Word(v) => v);
+    let step = word(0).then_or_val_zip(bang, "");
+
+    expect_pos_or_env(p,step, 2); // the next position to parse
 }
 
 #[test]
