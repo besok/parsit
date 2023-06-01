@@ -28,8 +28,6 @@
 //!
 //!         #[regex(r"[ \t\r\n]+", logos::skip)]
 //!         Whitespace,
-//!         #[error]
-//!         Error,
 //!     }
 //!
 //!     #[derive(Debug, Copy, Clone, PartialEq)]
@@ -109,4 +107,3 @@ pub mod step;
 pub mod parser;
 pub mod error;
 pub mod test;
-

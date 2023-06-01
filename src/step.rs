@@ -39,9 +39,6 @@ impl<'a, L, R> Step<'a, (L, R)> {
     ///
     ///         #[token("|")]
     ///         End,
-    ///
-    ///         #[error]
-    ///         Error,
     ///     }
     ///
     ///  enum Word<'a>{ Word(&'a str), Bang(&'a str)}
@@ -129,9 +126,7 @@ impl<'a, T> Step<'a, T> {
     ///
     ///         #[token("|")]
     ///         Del,
-    ///
-    ///         #[error]
-    ///         Error,
+
     ///     }
     ///
     ///  let pit:ParseIt<T> = ParseIt::new("word|another").unwrap();
@@ -172,9 +167,7 @@ impl<'a, T> Step<'a, T> {
     ///
     ///         #[token("|")]
     ///         Del,
-    ///
-    ///         #[error]
-    ///         Error,
+
     ///     }
     ///
     ///  let pit:ParseIt<T> = ParseIt::new("word|another").unwrap();
@@ -214,9 +207,7 @@ impl<'a, T> Step<'a, T> {
     ///
     ///         #[token("|")]
     ///         Del,
-    ///
-    ///         #[error]
-    ///         Error,
+
     ///     }
     ///
     ///  enum Word<'a>{ Word(&'a str), Bang(&'a str)}
@@ -264,9 +255,7 @@ impl<'a, T> Step<'a, T> {
     ///
     ///         #[token("|")]
     ///         Del,
-    ///
-    ///         #[error]
-    ///         Error,
+
     ///     }
     ///
     ///  let pit:ParseIt<T> = ParseIt::new("word|").unwrap();
@@ -311,9 +300,7 @@ impl<'a, T> Step<'a, T> {
     ///
     ///         #[token("|")]
     ///         Del,
-    ///
-    ///         #[error]
-    ///         Error,
+
     ///     }
     ///
     ///  enum Word<'a>{ Word(&'a str), Bang(&'a str)}
@@ -468,9 +455,6 @@ impl<'a, T> Step<'a, T> {
     ///
     ///         #[token("|")]
     ///         Del,
-    ///
-    ///         #[error]
-    ///         Error,
     ///     }
     ///
     ///  enum Word<'a>{ Word(&'a str), Bang(&'a str)}
@@ -518,9 +502,7 @@ impl<'a, T> Step<'a, T> {
     ///
     ///         #[token("|")]
     ///         Del,
-    ///
-    ///         #[error]
-    ///         Error,
+
     ///     }
     ///
     ///  enum Word<'a>{ Word(&'a str), Bang(&'a str), EmptyWord}
@@ -571,9 +553,7 @@ impl<'a, T> Step<'a, T> {
     ///
     ///         #[token("|")]
     ///         Del,
-    ///
-    ///         #[error]
-    ///         Error,
+
     ///     }
     ///
     ///  enum Word<'a>{ Word(&'a str), Bang(&'a str), EmptyWord}
@@ -624,9 +604,6 @@ impl<'a, T> Step<'a, T> {
     ///
     ///         #[token("|")]
     ///         Del,
-    ///
-    ///         #[error]
-    ///         Error,
     ///     }
     ///
     ///  enum Word<'a>{ Word(&'a str), Bang(&'a str), EmptyWord}
@@ -795,6 +772,36 @@ impl<'a, T> Step<'a, T> {
             Error(e) => Error(e),
         }
     }
+    /// Transforms a value if it is success into result that can pass father with a transformation to step
+    ///
+    /// # Examples
+    /// ```rust
+    /// use parsit::error::ParseError;
+    /// use parsit::step::Step;
+    /// struct Er;
+    /// impl<'a> Into<ParseError<'a>> for Er{
+    ///     fn into(self) -> ParseError<'a> {
+    ///         ParseError::FinishedOnFail
+    ///     }}
+    /// let step_one = Step::Success(1,0);
+    /// let step_two = step_one.flat_map(|v|Ok::<i32,Er>(1 + v));
+    ///
+    /// ```
+    ///
+    pub fn flat_map<Rhs, FMap, Err>(self, mapper: FMap) -> Step<'a, Rhs>
+        where
+            FMap: FnOnce(T) -> Result<Rhs, Err>,
+            Err: Into<ParseError<'a>>
+    {
+        match self {
+            Success(t, pos) => match mapper(t) {
+                Ok(v) => Success(v, pos),
+                Err(e) => Error(e.into())
+            },
+            Fail(pos) => Fail(pos),
+            Error(e) => Error(e),
+        }
+    }
     /// Combines the results from the current step(success) and with the given step success
     /// # Example
     /// ```rust
@@ -904,8 +911,6 @@ impl<'a, T> Step<'a, T> {
     ///         Value,
     ///         #[token("!")]
     ///         Bang,
-    ///         #[error]
-    ///         Error,
     ///     }
     ///  struct Value(bool);
     ///
@@ -947,8 +952,6 @@ impl<'a, T> Step<'a, T> {
     ///         Value,
     ///         #[token("!")]
     ///         Bang,
-    ///         #[error]
-    ///         Error,
     ///     }
     ///  struct Value(bool);
     ///
@@ -1068,14 +1071,13 @@ impl<'a, T> Alt<'a, T> {
 }
 
 
-
 impl<'a, T> From<Alt<'a, T>> for Step<'a, T> {
     fn from(alt: Alt<'a, T>) -> Self {
-       alt.current
+        alt.current
     }
 }
 
-impl<'a, T> From<Step <'a,T>> for Result<T, ParseError<'a>> {
+impl<'a, T> From<Step<'a, T>> for Result<T, ParseError<'a>> {
     fn from(step: Step<'a, T>) -> Self {
         match step {
             Success(t, _) => Ok(t),

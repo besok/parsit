@@ -22,9 +22,6 @@ use crate::step::Step::{Error, Fail, Success};
 ///
 ///         #[token("?")]
 ///         Question,
-///
-///         #[error]
-///         Error,
 ///     }
 ///  let p:ParseIt<TFQ> = ParseIt::new("true?").unwrap();
 /// ```
@@ -83,9 +80,6 @@ impl<'a, Token> ParseIt<'a, Token>
     ///
     ///         #[token("?")]
     ///         Question,
-    ///
-    ///         #[error]
-    ///         Error,
     ///     }
     ///  let parser:ParseIt<TFQ> = ParseIt::new("true?false").unwrap();
     ///  let parser_fn = |p|{ token!( parser.token(p) =>
@@ -128,9 +122,6 @@ impl<'a, Token> ParseIt<'a, Token>
     ///
     ///         #[token("?")]
     ///         Question,
-    ///
-    ///         #[error]
-    ///         Error,
     ///     }
     ///  let parser:ParseIt<TFQ> = ParseIt::new("").unwrap();
     ///  let parser_fn = |p|{ token!( parser.token(p) =>
@@ -201,10 +192,6 @@ pub struct EmptyToken {}
 ///
 ///         #[token("?")]
 ///         Question,
-///
-///
-///         #[error]
-///         Error,
 ///     }
 ///
 ///     let p:ParseIt<TFQ> = ParseIt::new("true?").unwrap();
@@ -270,10 +257,6 @@ macro_rules! token {
 ///         Word,
 ///         #[token("none")]
 ///         None,
-///
-///
-///         #[error]
-///         Error,
 ///     }
 ///
 ///     let p:ParseIt<TFQ> = ParseIt::new("(word)").unwrap();
@@ -348,10 +331,6 @@ macro_rules! wrap {
 ///         Word,
 ///         #[token("none")]
 ///         None,
-///
-///
-///         #[error]
-///         Error,
 ///     }
 ///
 ///     let p:ParseIt<TFQ> = ParseIt::new("word,word,word").unwrap();

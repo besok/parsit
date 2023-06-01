@@ -29,8 +29,7 @@ pub mod lexer_test {
     ///
     ///     #[regex(r"[ \t\r\n]+", logos::skip)]
     ///     Whitespace,
-    ///     #[error]
-    ///     Error,
+
     /// }
     ///     expect::<T>(
     ///         "abc, bcs!",
@@ -73,8 +72,7 @@ pub mod lexer_test {
     ///
     ///     #[regex(r"[ \t\r\n]+", logos::skip)]
     ///     Whitespace,
-    ///     #[error]
-    ///     Error,
+
     /// }
     ///     expect_succeed::<T>("abc, bcs!");
     /// ```
@@ -114,8 +112,7 @@ pub mod lexer_test {
     ///
     ///     #[regex(r"[ \t\r\n]+", logos::skip)]
     ///     Whitespace,
-    ///     #[error]
-    ///     Error,
+
     /// }
     ///     expect_failed::<T>("abc, bcs >> !");
     /// ```
@@ -154,8 +151,7 @@ pub mod lexer_test {
     ///
     ///     #[regex(r"[ \t\r\n]+", logos::skip)]
     ///     Whitespace,
-    ///     #[error]
-    ///     Error,
+
     /// }
     ///     expect_failed_with::<T,_>("abc, bcs > !", |e| e.is_bad_token_on(">") );
     /// ```
@@ -225,8 +221,7 @@ pub mod parser_test {
     ///
     ///     #[regex(r"[ \t\r\n]+", logos::skip)]
     ///     Whitespace,
-    ///     #[error]
-    ///     Error,
+
     /// }
     /// let p = parsit("abc!");
     /// let bang = |pos:usize| token!(p.token(pos) => T::Bang => "!");
@@ -276,8 +271,7 @@ pub mod parser_test {
     ///
     ///     #[regex(r"[ \t\r\n]+", logos::skip)]
     ///     Whitespace,
-    ///     #[error]
-    ///     Error,
+
     /// }
     /// let p = parsit("abc!");
     /// let bang = |pos:usize| token!(p.token(pos) => T::Bang => "!");
@@ -339,8 +333,7 @@ pub mod parser_test {
     ///
     ///     #[regex(r"[ \t\r\n]+", logos::skip)]
     ///     Whitespace,
-    ///     #[error]
-    ///     Error,
+
     /// }
     /// let p = parsit("abc!");
     /// let bang = |pos:usize| token!(p.token(pos) => T::Bang => "!");
@@ -385,8 +378,6 @@ pub mod parser_test {
     ///
     ///     #[regex(r"[ \t\r\n]+", logos::skip)]
     ///     Whitespace,
-    ///     #[error]
-    ///     Error,
     /// }
     /// let p = parsit("abc!");
     /// let bang = |pos:usize| token!(p.token(pos) => T::Bang => "!");
@@ -448,8 +439,6 @@ pub mod parser_test {
     ///
     ///     #[regex(r"[ \t\r\n]+", logos::skip)]
     ///     Whitespace,
-    ///     #[error]
-    ///     Error,
     /// }
     /// let p = parsit("abc>!");
     /// let bang = |pos:usize| token!(p.token(pos) => T::Bang => "!");
@@ -498,8 +487,6 @@ pub mod parser_test {
     ///
     ///     #[regex(r"[ \t\r\n]+", logos::skip)]
     ///     Whitespace,
-    ///     #[error]
-    ///     Error,
     /// }
     /// let p = parsit("abc>!");
     /// let bang = |pos:usize| token!(p.token(pos) => T::Bang => "!");

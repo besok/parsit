@@ -33,4 +33,6 @@ pub enum ParseError<'a> {
     ReachedEOF(usize),
     /// When the token stream si not empty and parser does not expect anything.
     UnreachedEOF(usize),
+    /// External error usually manually created
+    ExternalError(String, usize)
 }

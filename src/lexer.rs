@@ -42,12 +42,16 @@ impl<'a, T> LexIt<'a, T>
         let mut tokens_str = vec![];
 
         while let Some(t) = delegate.next() {
-            if t == T::ERROR {
-                return Err(ParseError::BadToken(delegate.slice(), delegate.span()));
-            } else {
-                tokens.push(t);
-                tokens_str.push(delegate.slice());
+            match t {
+                Ok(tok) => {
+                    tokens.push(tok);
+                    tokens_str.push(delegate.slice());
+                }
+                Err(_) => {
+                    return Err(ParseError::BadToken(delegate.slice(), delegate.span()));
+                }
             }
+
         }
 
         Ok(LexIt { tokens_str, tokens })
@@ -113,9 +117,6 @@ mod tests {
 
         #[token("|")]
         Del,
-
-        #[error]
-        Error,
     }
 
     #[test]
