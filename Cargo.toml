@@ -1,5 +1,5 @@
 [package]
-name = "parseit"
+name = "parsit"
 description = "very simple lib, the parsing combinators, recursive descendent that uses logos as lexer"
 version = "0.1.13"
 edition = "2021"
