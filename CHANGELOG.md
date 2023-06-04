@@ -45,4 +45,6 @@
   * update logos
   * add flatmap to step
   * add to string to error
- 
+
+**`0.1.14`**
+  * rename parser to Parsit*   

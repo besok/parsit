@@ -28,7 +28,7 @@ impl<'a, L, R> Step<'a, (L, R)> {
     /// ```rust
     ///  use logos::Logos;
     ///  use crate::parsit::token;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::parser::EmptyToken;
     ///  use crate::parsit::step::Step;
     ///
@@ -42,7 +42,7 @@ impl<'a, L, R> Step<'a, (L, R)> {
     ///     }
     ///
     ///  enum Word<'a>{ Word(&'a str), Bang(&'a str)}
-    ///  let pit:ParseIt<T> = ParseIt::new("word|").unwrap();
+    ///  let pit:Parsit<T> = Parsit::new("word|").unwrap();
     ///  let parse = |p:usize|{
     ///    token!(pit.token(p) => T::Word(v) => v)
     ///     .then_zip(|p| token!(pit.token(p) => T::End))
@@ -115,7 +115,7 @@ impl<'a, T> Step<'a, T> {
     /// ```rust
     ///  use logos::Logos;
     ///  use crate::parsit::token;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::parser::EmptyToken;
     ///  use crate::parsit::step::Step;
     ///
@@ -129,7 +129,7 @@ impl<'a, T> Step<'a, T> {
 
     ///     }
     ///
-    ///  let pit:ParseIt<T> = ParseIt::new("word|another").unwrap();
+    ///  let pit:Parsit<T> = Parsit::new("word|another").unwrap();
     ///
     ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => v)};
     ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
@@ -153,10 +153,10 @@ impl<'a, T> Step<'a, T> {
 
     /// Drops the next function but keeps the current result.
     ///Basically it is an alias for
-    /// ```rust
+    ///```rust
     ///  use logos::Logos;
     ///  use crate::parsit::token;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::parser::EmptyToken;
     ///  use crate::parsit::step::Step;
     ///
@@ -170,7 +170,7 @@ impl<'a, T> Step<'a, T> {
 
     ///     }
     ///
-    ///  let pit:ParseIt<T> = ParseIt::new("word|another").unwrap();
+    ///  let pit:Parsit<T> = Parsit::new("word|another").unwrap();
     ///
     ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => v)};
     ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
@@ -196,7 +196,7 @@ impl<'a, T> Step<'a, T> {
     /// ```rust
     ///  use logos::Logos;
     ///  use crate::parsit::token;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::parser::EmptyToken;
     ///  use crate::parsit::step::Step;
     ///
@@ -211,7 +211,7 @@ impl<'a, T> Step<'a, T> {
     ///     }
     ///
     ///  enum Word<'a>{ Word(&'a str), Bang(&'a str)}
-    ///  let pit:ParseIt<T> = ParseIt::new("word|").unwrap();
+    ///  let pit:Parsit<T> = Parsit::new("word|").unwrap();
     ///
     ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => v)};
     ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
@@ -244,7 +244,7 @@ impl<'a, T> Step<'a, T> {
     /// ```rust
     ///  use logos::Logos;
     ///  use crate::parsit::token;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::parser::EmptyToken;
     ///  use crate::parsit::step::Step;
     ///
@@ -258,7 +258,7 @@ impl<'a, T> Step<'a, T> {
 
     ///     }
     ///
-    ///  let pit:ParseIt<T> = ParseIt::new("word|").unwrap();
+    ///  let pit:Parsit<T> = Parsit::new("word|").unwrap();
     ///
     ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => v)};
     ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
@@ -289,7 +289,7 @@ impl<'a, T> Step<'a, T> {
     /// ```rust
     ///  use logos::Logos;
     ///  use crate::parsit::token;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::parser::EmptyToken;
     ///  use crate::parsit::step::Step;
     ///
@@ -307,7 +307,7 @@ impl<'a, T> Step<'a, T> {
     ///  impl<'a> Default for Word<'a>{fn default() -> Self {
     ///         Word::Word("")
     ///     }}
-    ///  let pit:ParseIt<T> = ParseIt::new("word|").unwrap();
+    ///  let pit:Parsit<T> = Parsit::new("word|").unwrap();
     ///
     ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => Word::Word(v))};
     ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
@@ -361,7 +361,7 @@ impl<'a, T> Step<'a, T> {
     ///
     /// Please see
     ///  - [Step::then_multi_zip](Step::then_multi_zip)
-    ///  - [ParseIt::zero_or_more](ParseIt::zero_or_more)
+    ///  - [Parsit::zero_or_more](Parsit::zero_or_more)
     pub fn then_multi_combine<K, R, Then, Combine>(
         self,
         then: Then,
@@ -444,7 +444,7 @@ impl<'a, T> Step<'a, T> {
     /// ```rust
     ///  use logos::Logos;
     ///  use crate::parsit::token;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::parser::EmptyToken;
     ///  use crate::parsit::step::Step;
     ///
@@ -461,7 +461,7 @@ impl<'a, T> Step<'a, T> {
     ///  impl<'a> Default for Word<'a>{fn default() -> Self {
     ///         Word::Word("")
     ///     }}
-    ///  let pit:ParseIt<T> = ParseIt::new("|word|").unwrap();
+    ///  let pit:Parsit<T> = Parsit::new("|word|").unwrap();
     ///
     ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => Word::Word(v))};
     ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
@@ -491,7 +491,7 @@ impl<'a, T> Step<'a, T> {
     /// ```rust
     ///  use logos::Logos;
     ///  use crate::parsit::token;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::parser::EmptyToken;
     ///  use crate::parsit::step::Step;
     ///
@@ -509,7 +509,7 @@ impl<'a, T> Step<'a, T> {
     ///  impl<'a> Default for Word<'a>{fn default() -> Self {
     ///         Word::Word("")
     ///     }}
-    ///  let pit:ParseIt<T> = ParseIt::new("||").unwrap();
+    ///  let pit:Parsit<T> = Parsit::new("||").unwrap();
     ///
     ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => Word::Word(v))};
     ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
@@ -542,7 +542,7 @@ impl<'a, T> Step<'a, T> {
     /// ```rust
     ///  use logos::Logos;
     ///  use crate::parsit::token;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::parser::EmptyToken;
     ///  use crate::parsit::step::Step;
     ///
@@ -560,7 +560,7 @@ impl<'a, T> Step<'a, T> {
     ///  impl<'a> Default for Word<'a>{fn default() -> Self {
     ///         Word::EmptyWord
     ///     }}
-    ///  let pit:ParseIt<T> = ParseIt::new("||").unwrap();
+    ///  let pit:Parsit<T> = Parsit::new("||").unwrap();
     ///
     ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => Word::Word(v))};
     ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
@@ -593,7 +593,7 @@ impl<'a, T> Step<'a, T> {
     /// ```rust
     ///  use logos::Logos;
     ///  use crate::parsit::token;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::parser::EmptyToken;
     ///  use crate::parsit::step::Step;
     ///
@@ -610,7 +610,7 @@ impl<'a, T> Step<'a, T> {
     ///  impl<'a> Default for Word<'a>{fn default() -> Self {
     ///         Word::Word("")
     ///     }}
-    ///  let pit:ParseIt<T> = ParseIt::new("||").unwrap();
+    ///  let pit:Parsit<T> = Parsit::new("||").unwrap();
     ///
     ///  let word = |p:usize| {token!(pit.token(p) => T::Word(v) => Word::Word(v))};
     ///  let del = |p:usize| {token!(pit.token(p) => T::Del)};
@@ -901,7 +901,7 @@ impl<'a, T> Step<'a, T> {
     ///
     /// ```rust
     ///  use logos::Logos;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::token;
     ///  use crate::parsit::step::Step;
     ///  use crate::parsit::parser::EmptyToken;
@@ -914,7 +914,7 @@ impl<'a, T> Step<'a, T> {
     ///     }
     ///  struct Value(bool);
     ///
-    ///  let p:ParseIt<T> = ParseIt::new("value").unwrap();
+    ///  let p:Parsit<T> = Parsit::new("value").unwrap();
     ///
     ///  let bang_opt = |pos| {
     ///         token!(p.token(pos) => T::Bang => true).or_val(false)
@@ -942,7 +942,7 @@ impl<'a, T> Step<'a, T> {
     /// #Example
     /// ```rust
     ///  use logos::Logos;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::token;
     ///  use crate::parsit::step::Step;
     ///  use crate::parsit::parser::EmptyToken;
@@ -955,7 +955,7 @@ impl<'a, T> Step<'a, T> {
     ///     }
     ///  struct Value(bool);
     ///
-    ///  let p:ParseIt<T> = ParseIt::new("value").unwrap();
+    ///  let p:Parsit<T> = Parsit::new("value").unwrap();
     ///
     ///  let bang_opt = |pos| {
     ///         token!(p.token(pos) => T::Bang).or_none()

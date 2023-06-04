@@ -12,7 +12,7 @@ use crate::step::Step::{Error, Fail, Success};
 ///
 /// ```
 ///  use logos::Logos;
-///  use crate::parsit::parser::ParseIt;
+///  use crate::parsit::parser::Parsit;
 ///  #[derive(Logos,PartialEq)]
 ///     pub enum TFQ {
 ///         #[token("true")]
@@ -23,15 +23,15 @@ use crate::step::Step::{Error, Fail, Success};
 ///         #[token("?")]
 ///         Question,
 ///     }
-///  let p:ParseIt<TFQ> = ParseIt::new("true?").unwrap();
+///  let p:Parsit<TFQ> = Parsit::new("true?").unwrap();
 /// ```
 /// Note: The parser works only with string input
 ///
-pub struct ParseIt<'a, T> where T: Logos<'a, Source=str>, {
+pub struct Parsit<'a, T> where T: Logos<'a, Source=str>, {
     lexer: LexIt<'a, T>,
 }
 
-impl<'a, Token> ParseIt<'a, Token>
+impl<'a, Token> Parsit<'a, Token>
     where Token: Logos<'a, Source=str> + PartialEq,
 {
     /// Creates a parser with aset of tokens from the source
@@ -39,7 +39,7 @@ impl<'a, Token> ParseIt<'a, Token>
     pub fn new(src: &'a str) -> Result<Self, ParseError<'a>>
         where Token::Extras: Default
     {
-        Ok(ParseIt {
+        Ok(Parsit {
             lexer: LexIt::new(src)?,
         })
     }
@@ -52,7 +52,7 @@ impl<'a, Token> ParseIt<'a, Token>
     /// # Examples
     /// typically used in the token! macros:
     /// ```ignore
-    ///  let p:ParseIt<_> = ParseIt::new(...)?;
+    ///  let p:Parsit<_> = Parsit::new(...)?;
     ///  token!(p.token(0) => ...)
     /// ```
     pub fn token(&self, pos: usize) -> Result<(&Token, usize), ParseError<'a>> {
@@ -68,7 +68,7 @@ impl<'a, Token> ParseIt<'a, Token>
     /// # Examples
     /// ```
     ///  use logos::Logos;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::token;
     ///  use crate::parsit::step::Step;
     ///  #[derive(Logos,PartialEq)]
@@ -81,7 +81,7 @@ impl<'a, Token> ParseIt<'a, Token>
     ///         #[token("?")]
     ///         Question,
     ///     }
-    ///  let parser:ParseIt<TFQ> = ParseIt::new("true?false").unwrap();
+    ///  let parser:Parsit<TFQ> = Parsit::new("true?false").unwrap();
     ///  let parser_fn = |p|{ token!( parser.token(p) =>
     ///                   TFQ::True => Some(true),
     ///                   TFQ::False => Some(false),
@@ -110,7 +110,7 @@ impl<'a, Token> ParseIt<'a, Token>
     /// # Examples
     /// ```
     ///  use logos::Logos;
-    ///  use crate::parsit::parser::ParseIt;
+    ///  use crate::parsit::parser::Parsit;
     ///  use crate::parsit::token;
     ///  use crate::parsit::step::Step;
     ///  #[derive(Logos,PartialEq)]
@@ -123,7 +123,7 @@ impl<'a, Token> ParseIt<'a, Token>
     ///         #[token("?")]
     ///         Question,
     ///     }
-    ///  let parser:ParseIt<TFQ> = ParseIt::new("").unwrap();
+    ///  let parser:Parsit<TFQ> = Parsit::new("").unwrap();
     ///  let parser_fn = |p|{ token!( parser.token(p) =>
     ///                   TFQ::True => Some(true),
     ///                   TFQ::False => Some(false),
@@ -179,7 +179,7 @@ pub struct EmptyToken {}
 /// - create a pattern matching for the given tokens
 /// ```
 ///     use logos::Logos;
-///     use crate::parsit::parser::ParseIt;
+///     use crate::parsit::parser::Parsit;
 ///     use crate::parsit::token;
 ///     use crate::parsit::step::Step;
 ///     use crate::parsit::parser::EmptyToken;
@@ -194,7 +194,7 @@ pub struct EmptyToken {}
 ///         Question,
 ///     }
 ///
-///     let p:ParseIt<TFQ> = ParseIt::new("true?").unwrap();
+///     let p:Parsit<TFQ> = Parsit::new("true?").unwrap();
 ///     // create a pattern matching for the given tokens
 ///      token!(
 ///         p.token(0) =>
@@ -241,7 +241,7 @@ macro_rules! token {
 /// # Examples
 /// ```
 ///     use logos::Logos;
-///     use crate::parsit::parser::ParseIt;
+///     use crate::parsit::parser::Parsit;
 ///     use crate::parsit::wrap;
 ///     use crate::parsit::token;
 ///     use crate::parsit::step::Step;
@@ -259,18 +259,18 @@ macro_rules! token {
 ///         None,
 ///     }
 ///
-///     let p:ParseIt<TFQ> = ParseIt::new("(word)").unwrap();
+///     let p:Parsit<TFQ> = Parsit::new("(word)").unwrap();
 ///     let left = |pos:usize|{token!(p.token(pos) => TFQ::L)};
 ///     let right = |pos:usize|{token!(p.token(pos) => TFQ::R)};
 ///     let word = |pos:usize|{token!(p.token(pos) => TFQ::Word)};
 ///     let pos = 0;
 ///     wrap!(pos => left ; word; right );
 ///
-///     let p:ParseIt<TFQ> = ParseIt::new("()").unwrap();
+///     let p:Parsit<TFQ> = Parsit::new("()").unwrap();
 ///     let word = |pos:usize|{token!(p.token(pos) => TFQ::Word).or_none()};
 ///     wrap!(0 => left ; word ?; right );
 ///
-///     let p:ParseIt<TFQ> = ParseIt::new("()").unwrap();
+///     let p:Parsit<TFQ> = Parsit::new("()").unwrap();
 ///     let word = |pos:usize|{token!(p.token(pos) => TFQ::Word => 1)};
 ///     wrap!(0 => left ; word or 0; right ).print();
 /// ```
@@ -312,7 +312,7 @@ macro_rules! wrap {
 /// # Examples
 /// ```
 ///     use logos::Logos;
-///     use crate::parsit::parser::ParseIt;
+///     use crate::parsit::parser::Parsit;
 ///     use crate::parsit::wrap;
 ///     use crate::parsit::seq;
 ///     use crate::parsit::token;
@@ -333,12 +333,12 @@ macro_rules! wrap {
 ///         None,
 ///     }
 ///
-///     let p:ParseIt<TFQ> = ParseIt::new("word,word,word").unwrap();
+///     let p:Parsit<TFQ> = Parsit::new("word,word,word").unwrap();
 ///     let comma = |pos:usize|{token!(p.token(pos) => TFQ::C)};
 ///     let word = |pos:usize|{token!(p.token(pos) => TFQ::Word)};
 ///     let pos = 0;
 ///     seq!(pos => word, comma );
-///     let p:ParseIt<TFQ> = ParseIt::new("word,word,word,").unwrap();
+///     let p:Parsit<TFQ> = Parsit::new("word,word,word,").unwrap();
 ///     seq!(pos => word, comma ,);
 /// ```
 ///

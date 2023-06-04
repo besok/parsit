@@ -6,7 +6,7 @@
 //!     use crate::parsit::token;
 //!     use crate::parsit::step::Step;
 //!     use crate::parsit::parser::EmptyToken;
-//!     use crate::parsit::parser::ParseIt;
+//!     use crate::parsit::parser::Parsit;
 //!     use crate::parsit::error::ParseError;
 //!     use logos::Logos;
 //!
@@ -43,12 +43,12 @@
 //!     }
 //!
 //!     struct Parser<'a> {
-//!         inner: ParseIt<'a, Token<'a>>,
+//!         inner: Parsit<'a, Token<'a>>,
 //!     }
 //!
 //!     impl<'a> Parser<'a> {
 //!         fn new(text: &'a str) -> Parser<'a> {
-//!             let delegate: ParseIt<Token> = ParseIt::new(text).unwrap();
+//!             let delegate: Parsit<Token> = Parsit::new(text).unwrap();
 //!             Parser { inner: delegate }
 //!         }
 //!

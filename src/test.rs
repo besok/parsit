@@ -179,16 +179,16 @@ pub mod lexer_test {
 pub mod parser_test {
     use std::fmt::Debug;
     use logos::Logos;
-    use crate::parser::ParseIt;
+    use crate::parser::Parsit;
     use crate::step::Step;
 
     /// Creates an internal parser or panicking otherwise
-    pub fn parsit<'a, T>(src: &'a str) -> ParseIt<T>
+    pub fn parsit<'a, T>(src: &'a str) -> Parsit<T>
         where
             T: Logos<'a, Source=str> + Debug + PartialEq,
             T::Extras: Default,
     {
-        match ParseIt::new(src) {
+        match Parsit::new(src) {
             Ok(p) => p,
             Err(e) => panic!("Some error popped up in lexing, namely {:?}", e),
         }
@@ -201,7 +201,7 @@ pub mod parser_test {
     /// use parsit::test::parser_test::expect;
     /// use crate::parsit::test::parser_test::*;
     /// use crate::parsit::token;
-    /// use crate::parsit::parser::ParseIt;
+    /// use crate::parsit::parser::Parsit;
     /// use crate::parsit::step::Step;
     ///
     /// #[derive(Logos, Debug, PartialEq)]
@@ -251,7 +251,7 @@ pub mod parser_test {
     /// use parsit::test::parser_test::expect;
     /// use crate::parsit::test::parser_test::*;
     /// use crate::parsit::token;
-    /// use crate::parsit::parser::ParseIt;
+    /// use crate::parsit::parser::Parsit;
     /// use crate::parsit::step::Step;
     ///
     /// #[derive(Logos, Debug, PartialEq)]
@@ -283,7 +283,7 @@ pub mod parser_test {
     ///
     /// expect_or_env(p,step,"abc!".to_string());
     /// ```
-    pub fn expect_or_env<'a, Token, StepRes>(parser: ParseIt<'a, Token>, res: Step<'a, StepRes>, expect: StepRes)
+    pub fn expect_or_env<'a, Token, StepRes>(parser: Parsit<'a, Token>, res: Step<'a, StepRes>, expect: StepRes)
         where
             StepRes: PartialEq + Debug,
             Token: Logos<'a, Source=str> + Debug + PartialEq,
@@ -313,7 +313,7 @@ pub mod parser_test {
     /// use crate::parsit::test::parser_test::expect_pos;
     /// use crate::parsit::test::parser_test::parsit;
     /// use crate::parsit::token;
-    /// use crate::parsit::parser::ParseIt;
+    /// use crate::parsit::parser::Parsit;
     /// use crate::parsit::step::Step;
     ///
     /// #[derive(Logos, Debug, PartialEq)]
@@ -358,7 +358,7 @@ pub mod parser_test {
     /// use crate::parsit::test::parser_test::expect_pos;
     /// use crate::parsit::test::parser_test::parsit;
     /// use crate::parsit::token;
-    /// use crate::parsit::parser::ParseIt;
+    /// use crate::parsit::parser::Parsit;
     /// use crate::parsit::step::Step;
     ///
     /// #[derive(Logos, Debug, PartialEq)]
@@ -386,7 +386,7 @@ pub mod parser_test {
     ///
     /// expect_pos_or_env(p,step,2); // the next position to parse
     /// ```
-    pub fn expect_pos_or_env<'a, Token, StepRes>(parser: ParseIt<'a, Token>, res: Step<'a, StepRes>, expect: usize)
+    pub fn expect_pos_or_env<'a, Token, StepRes>(parser: Parsit<'a, Token>, res: Step<'a, StepRes>, expect: usize)
         where
             StepRes: PartialEq + Debug,
             Token: Logos<'a, Source=str> + Debug + PartialEq,
@@ -417,7 +417,7 @@ pub mod parser_test {
     /// use crate::parsit::test::parser_test::fail;
     /// use crate::parsit::test::parser_test::parsit;
     /// use crate::parsit::token;
-    /// use crate::parsit::parser::ParseIt;
+    /// use crate::parsit::parser::Parsit;
     /// use crate::parsit::step::Step;
     ///
     /// #[derive(Logos, Debug, PartialEq)]
@@ -465,7 +465,7 @@ pub mod parser_test {
     /// use crate::parsit::test::parser_test::fail_on;
     /// use crate::parsit::test::parser_test::parsit;
     /// use crate::parsit::token;
-    /// use crate::parsit::parser::ParseIt;
+    /// use crate::parsit::parser::Parsit;
     /// use crate::parsit::step::Step;
     ///
     /// #[derive(Logos, Debug, PartialEq)]
