@@ -791,8 +791,7 @@ impl<'a, T> Step<'a, T> {
     pub fn flat_map<Rhs, FMap,FMapErr, Err>(self, mapper: FMap, error_map:FMapErr) -> Step<'a, Rhs>
         where
             FMap: FnOnce(T) -> Result<Rhs, Err>,
-            FMapErr: FnOnce(Err) -> Step<'a,Rhs>,
-            Err: Into<ParseError<'a>>
+            FMapErr: FnOnce(Err) -> Step<'a,Rhs>
     {
         match self {
             Success(t, pos) => match mapper(t) {

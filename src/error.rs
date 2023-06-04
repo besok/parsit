@@ -1,6 +1,7 @@
 use std::ops::Range;
+
 /// Parsing error.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ParseError<'a> {
     /// The token is bad and apparently the error is on the level of lexing
     BadToken(&'a str, Range<usize>),
@@ -34,5 +35,18 @@ pub enum ParseError<'a> {
     /// When the token stream si not empty and parser does not expect anything.
     UnreachedEOF(usize),
     /// External error usually manually created
-    ExternalError(String, usize)
+    ExternalError(String, usize),
+}
+
+impl<'a> ToString for ParseError<'a> {
+    fn to_string(&self) -> String {
+        match self {
+            ParseError::BadToken(a, b) => format!("bad token {:?}, range: ([{:?}..{:?}])", a, b.start, b.end),
+            ParseError::FailedOnValidation(a, b) =>format!("validation failed on pos {:?}, mes:{:?} ",b,a),
+            ParseError::FinishedOnFail => format!("it finished parsing on the fail positon"),
+            ParseError::ReachedEOF(p) => format!("it ends parsing on {:?}",p),
+            ParseError::UnreachedEOF(p) => format!("it ends earlier on {:?}",p),
+            ParseError::ExternalError(a, b) => format!("external error: {:?} on {:?}",a,b),
+        }
+    }
 }
