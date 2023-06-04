@@ -784,19 +784,20 @@ impl<'a, T> Step<'a, T> {
     ///         ParseError::FinishedOnFail
     ///     }}
     /// let step_one = Step::Success(1,0);
-    /// let step_two = step_one.flat_map(|v|Ok::<i32,Er>(1 + v));
+    /// let step_two = step_one.flat_map(|v|Ok::<i32,Er>(1 + v), |e| Step::Fail(0));
     ///
     /// ```
     ///
-    pub fn flat_map<Rhs, FMap, Err>(self, mapper: FMap) -> Step<'a, Rhs>
+    pub fn flat_map<Rhs, FMap,FMapErr, Err>(self, mapper: FMap, error_map:FMapErr) -> Step<'a, Rhs>
         where
             FMap: FnOnce(T) -> Result<Rhs, Err>,
+            FMapErr: FnOnce(Err) -> Step<'a,Rhs>,
             Err: Into<ParseError<'a>>
     {
         match self {
             Success(t, pos) => match mapper(t) {
                 Ok(v) => Success(v, pos),
-                Err(e) => Error(e.into())
+                Err(e) => error_map(e)
             },
             Fail(pos) => Fail(pos),
             Error(e) => Error(e),
