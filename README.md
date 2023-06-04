@@ -1,4 +1,4 @@
-# ParseIt
+# Parsit
 
 ### Description
 
@@ -53,23 +53,23 @@ enum Token {
 
 #### Create a parser that will be able to parse the given set of tokens
 
-The library provides `ParseIt<'a,T>` instance that encompasses a set of tokens and auxiliary methods
+The library provides `Parsit<'a,T>` instance that encompasses a set of tokens and auxiliary methods
 
 ```rust
 
 struct Parser<'a> {
-    inner: ParseIt<'a, Token<'a>>,
+    inner: Parsit<'a, Token<'a>>,
 }
 
 ```
 
-#### Implement a parsing functions using `ParseIt` instance and auxiliary methods from the `Step`
+#### Implement a parsing functions using `Parsit` instance and auxiliary methods from the `Step`
 
 The helpers:
 
 - the macros token! that alleviates comparing and matching single tokens
 - methods `then`, `then_zip` and others from `Step`
-- methods `one_or_more`, `zero_or_more` from `ParseIt`
+- methods `one_or_more`, `zero_or_more` from `Parsit`
 
 #### Transform the result into `Result<Structure, ParserError<'a>>`
 
@@ -82,7 +82,7 @@ The helpers:
 ### Complete example
 
 ```rust
-  use crate::parser::ParseIt;
+  use crate::parser::Parsit;
 use crate::token;
 use crate::step::Step;
 use crate::parser::EmptyToken;
@@ -125,12 +125,12 @@ enum Sentence<'a> {
 }
 
 struct Parser<'a> {
-    inner: ParseIt<'a, Token<'a>>,
+    inner: Parsit<'a, Token<'a>>,
 }
 
 impl<'a> Parser<'a> {
     fn new(text: &'a str) -> Parser<'a> {
-        let delegate: ParseIt<Token> = ParseIt::new(text).unwrap();
+        let delegate: Parsit<Token> = Parsit::new(text).unwrap();
         Parser { inner: delegate }
     }
 
@@ -301,7 +301,7 @@ use logos::Logos;
 use crate::parsit::test::parser_test::fail;
 use crate::parsit::test::parser_test::parsit;
 use crate::parsit::token;
-use crate::parsit::parser::ParseIt;
+use crate::parsit::parser::Parsit;
 use crate::parsit::step::Step;
 
 #[derive(Logos, Debug, PartialEq)]
