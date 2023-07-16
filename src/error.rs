@@ -32,7 +32,7 @@ pub enum ParseError<'a> {
     FinishedOnFail,
     /// When the token stream is empty but the parser expects other tokens
     ReachedEOF(usize),
-    /// When the token stream si not empty and parser does not expect anything.
+    /// When the token stream is not empty and parser does not expect anything.
     UnreachedEOF(usize),
     /// External error usually manually created
     ExternalError(String, usize),
@@ -43,9 +43,9 @@ impl<'a> ToString for ParseError<'a> {
         match self {
             ParseError::BadToken(a, b) => format!("bad token {:?}, range: ([{:?}..{:?}])", a, b.start, b.end),
             ParseError::FailedOnValidation(a, b) =>format!("validation failed on pos {:?}, mes:{:?} ",b,a),
-            ParseError::FinishedOnFail => format!("it finished parsing on the fail positon"),
-            ParseError::ReachedEOF(p) => format!("it ends parsing on {:?}",p),
-            ParseError::UnreachedEOF(p) => format!("it ends earlier on {:?}",p),
+            ParseError::FinishedOnFail => format!("it finished parsing on the fail position"),
+            ParseError::ReachedEOF(p) => format!("the token stream is empty but the parser expects other tokens on {:?}",p),
+            ParseError::UnreachedEOF(p) => format!("the token stream is not empty and parser does not expect anything on {:?}",p),
             ParseError::ExternalError(a, b) => format!("external error: {:?} on {:?}",a,b),
         }
     }
