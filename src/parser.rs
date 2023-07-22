@@ -1,7 +1,6 @@
 use logos::Logos;
 use crate::lexer::LexIt;
 use crate::error::ParseError;
-use crate::error::ParseError::{ReachedEOF, UnreachedEOF};
 use crate::step::Step;
 use crate::step::Step::{Error, Fail, Success};
 
@@ -140,7 +139,7 @@ impl<'a, Token> Parsit<'a, Token>
     {
         match then(pos).then_multi_zip(then).merge() {
             Fail(_) => Success(vec![], pos),
-            Error(ReachedEOF(_)) => Success(vec![], pos),
+            Error(ParseError::ReachedEOF(_)) => Success(vec![], pos),
             success => success,
         }
     }
@@ -150,7 +149,7 @@ impl<'a, Token> Parsit<'a, Token>
     /// It can be used in the end of the parsing
     pub fn validate_eof<T>(&self, res: Step<'a, T>) -> Step<'a, T> {
         match res {
-            Success(_, pos) if self.lexer.len() != pos => Error(UnreachedEOF(pos)),
+            Success(_, pos) if self.lexer.len() != pos => Error(ParseError::UnreachedEOF(pos)),
             other => other,
         }
     }
@@ -161,6 +160,10 @@ impl<'a, Token> Parsit<'a, Token>
         match step {
             Success(_, p) => self.lexer.env(*p),
             Fail(p) => self.lexer.env(*p),
+            Error(ParseError::ExternalError(_,p)) => self.lexer.env(*p),
+            Error(ParseError::FailedOnValidation(_,p)) => self.lexer.env(*p),
+            Error(ParseError::ReachedEOF(p)) => self.lexer.env(*p),
+            Error(ParseError::UnreachedEOF(p)) => self.lexer.env(*p),
             Error(e) => format!("{:?}", e)
         }
     }
